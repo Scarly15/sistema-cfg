@@ -33,11 +33,11 @@
             <form onsubmit="handleLogin(event)" class="space-y-4">
                 <div>
                     <label class="block text-xs font-medium text-slate-400 uppercase mb-1">Usuario</label>
-                    <input type="text" id="username" required class="w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-2.5 text-sm text-white outline-none focus:border-indigo-500" value="admin_cfg">
+                    <input type="text" id="username" required class="w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-2.5 text-sm text-white outline-none focus:border-indigo-500" value="scarly_creadora">
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-slate-400 uppercase mb-1">Contraseña</label>
-                    <input type="password" id="password" required class="w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-2.5 text-sm text-white outline-none focus:border-indigo-500" value="admin123">
+                    <input type="password" id="password" required class="w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-2.5 text-sm text-white outline-none focus:border-indigo-500" value="cfg2026">
                 </div>
                 <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-2.5 rounded-lg text-sm transition-all cursor-pointer">Ingresar al Sistema</button>
             </form>
@@ -46,23 +46,32 @@
 
     <!-- DASHBOARD -->
     <div id="app-screen" class="hidden h-screen flex flex-col">
-        <header class="bg-slate-900 border-b border-slate-800 h-16 flex items-center justify-between px-6 z-30">
-            <div class="flex items-center space-x-3">
+        <header class="bg-slate-900 border-b border-slate-800 h-16 flex items-center justify-between px-6 z-30 gap-4">
+            <div class="flex items-center space-x-3 shrink-0">
                 <div class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center font-bold text-white text-xs">CFG</div>
-                <span class="font-bold text-sm text-white">CFG LARA <span class="text-indigo-400 font-normal">| Centro Táctico</span></span>
+                <span class="font-bold text-sm text-white hidden md:inline">CFG LARA <span class="text-indigo-400 font-normal">| Centro Táctico</span></span>
             </div>
 
-            <div class="flex items-center space-x-3 bg-slate-950 border border-slate-800 px-3 py-1.5 rounded-xl">
-                <span class="text-[11px] text-slate-400 uppercase font-semibold">Ciclo:</span>
-                <select id="select-ciclo-consulta" onchange="cambiarCicloConsulta(this.value)" class="bg-slate-900 text-indigo-300 text-xs font-bold border border-slate-700 rounded-lg px-2 py-1 outline-none">
-                    <option value="7">7ma Consulta Popular</option>
-                    <option value="8">8va Consulta Popular</option>
-                </select>
+            <!-- BARRA DE BÚSQUEDA GLOBAL -->
+            <div class="flex-1 max-w-xl relative">
+                <div class="relative">
+                    <input type="text" id="input-busqueda-global" oninput="buscarComunaOConsojo(this.value)" placeholder="🔍 Buscar por Consejo Comunal, Comuna o Código..." class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-4 py-1.5 text-xs text-white outline-none focus:border-indigo-500">
+                    <span class="absolute left-3 top-2 text-slate-500 text-xs">🔍</span>
+                </div>
+                <div id="resultados-busqueda" class="absolute left-0 right-0 top-10 bg-slate-900 border border-slate-800 rounded-xl shadow-2xl z-50 max-h-64 overflow-y-auto hidden divide-y divide-slate-800/50"></div>
             </div>
 
-            <div class="flex items-center space-x-3">
+            <div class="flex items-center space-x-2 shrink-0">
+                <div class="flex items-center space-x-2 bg-slate-950 border border-slate-800 px-3 py-1.5 rounded-xl">
+                    <span class="text-[11px] text-slate-400 uppercase font-semibold hidden sm:inline">Ciclo:</span>
+                    <select id="select-ciclo-consulta" onchange="cambiarCicloConsulta(this.value)" class="bg-slate-900 text-indigo-300 text-xs font-bold border border-slate-700 rounded-lg px-2 py-1 outline-none">
+                        <option value="7">7ma Consulta Popular</option>
+                        <option value="8">8va Consulta Popular</option>
+                    </select>
+                </div>
+
                 <span id="user-display" class="text-xs bg-indigo-500/10 border border-indigo-500/30 px-3 py-1.5 rounded-full text-indigo-300"></span>
-                <button id="btn-admin-usuarios" onclick="abrirGestionUsuarios()" class="text-xs bg-purple-600 hover:bg-purple-500 text-white px-3 py-1.5 rounded-lg">⚙️ Usuarios</button>
+                <button id="btn-admin-usuarios" onclick="abrirGestionUsuarios()" class="text-xs bg-purple-600 hover:bg-purple-500 text-white px-3 py-1.5 rounded-lg hidden">⚙️ Usuarios</button>
                 <button onclick="handleLogout()" class="text-xs bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 px-3 py-1.5 rounded-lg">Cerrar Sesión</button>
             </div>
         </header>
@@ -70,7 +79,7 @@
         <div class="flex-1 flex overflow-hidden relative">
             <aside class="w-80 bg-slate-900 border-r border-slate-800 flex flex-col p-4 space-y-3 z-20 overflow-y-auto">
                 <div>
-                    <label class="text-[11px] font-semibold text-slate-400 uppercase">Zoom por Municipio</label>
+                    <label class="text-[11px] font-semibold text-slate-400 uppercase">Zoom por Municipio (9 Municipios)</label>
                     <select id="select-municipio" onchange="zoomMunicipio(this.value)" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white outline-none mt-1">
                         <option value="">Todos los Municipios</option>
                         <option value="Iribarren">Iribarren</option>
@@ -160,22 +169,32 @@
         let chartSectoresInstance = null;
 
         const municipiosMap = {
-            1: "Iribarren", 2: "Palavecino", 3: "Iribarren", 4: "Jiménez",
-            5: "Morán", 6: "Andrés Eloy Blanco", 7: "Torres", 8: "Simón Planas", 9: "Crespo", 10: "Urdaneta"
+            1: "Iribarren", 2: "Palavecino", 3: "Jiménez", 4: "Morán",
+            5: "Andrés Eloy Blanco", 6: "Torres", 7: "Simón Planas", 8: "Crespo", 9: "Urdaneta"
         };
 
         const municipiosCoordenadas = {
             "Iribarren": { lat: 10.0678, lng: -69.3474, zoom: 12 },
             "Palavecino": { lat: 10.2435, lng: -69.2631, zoom: 13 },
             "Jiménez": { lat: 9.9791, lng: -69.7854, zoom: 12 },
-            "Simón Planas": { lat: 9.8078, lng: -69.0528, zoom: 12 }
+            "Morán": { lat: 9.7811, lng: -69.7981, zoom: 12 },
+            "Andrés Eloy Blanco": { lat: 9.6833, lng: -69.6500, zoom: 12 },
+            "Torres": { lat: 10.1211, lng: -70.0801, zoom: 11 },
+            "Simón Planas": { lat: 9.8078, lng: -69.0528, zoom: 12 },
+            "Crespo": { lat: 10.2833, lng: -69.1000, zoom: 12 },
+            "Urdaneta": { lat: 10.5500, lng: -69.4500, zoom: 11 }
         };
 
         const parroquiasPorMunicipio = {
             "Iribarren": ["Concepción", "Catedral", "Santa Rosa", "Unión", "El Cují", "Tamaca", "Juan de Villegas", "Aguedo Felipe Alvarado", "Buena Vista", "Juares"],
             "Palavecino": ["Cabudare", "José Gregorio Bastidas", "Agua Viva"],
             "Jiménez": ["Quíbor", "Diego de Lozada", "José Bernardo Dorante", "Paraíso de San José", "San Miguel", "Cuara", "Paso Real"],
-            "Simón Planas": ["Sarare", "Buría", "Gustavo Vegas León"]
+            "Morán": ["Bolívar", "Anzoátegui", "Guárico", "Hilario Luna y Luna", "Humocaro Alto", "Humocaro Bajo", "La Concordia", "La Joaquina"],
+            "Andrés Eloy Blanco": ["Pío Tamayo", "Yacambú", "Quebrada Honda de Guache"],
+            "Torres": ["Trinidad Samuel", "Antonio Díaz", "Camacaro", "Castañeda", "Chiquinquirá", "Espinoza de los Monteros", "Lara", "Manuel Morillo", "Montaña Verde", "Montes de Oca", "Torres"],
+            "Simón Planas": ["Sarare", "Buría", "Gustavo Vegas León"],
+            "Crespo": ["Freitez", "José María Blanco"],
+            "Urdaneta": ["Siquisique", "Moroturo", "San Miguel", "Xaguas"]
         };
 
         const comunasRespaldo = [
@@ -191,7 +210,6 @@
                     { nombre: "CC Ruiz Pineda", voceria_estatus: "Vencida" },
                     { nombre: "CC 12 de Octubre", voceria_estatus: "Vigente" }
                 ],
-                organizacion_ejecutora: "Consejo Comunal La Batalla",
                 proyectos: "Sustitución Colectores de Aguas Servidas",
                 estatus_proyecto: "Borrador",
                 ejecucion_fisica: 0,
@@ -211,7 +229,6 @@
                     { nombre: "CC La Miel Centro", voceria_estatus: "Vigente" },
                     { nombre: "CC Sabana Verde", voceria_estatus: "Vigente" }
                 ],
-                organizacion_ejecutora: "Consejo Comunal La Miel Centro",
                 proyectos: "Rehabilitación de Red de Agua Potable y Estación de Bombeo",
                 estatus_proyecto: "Culminado",
                 ejecucion_fisica: 100,
@@ -228,7 +245,6 @@
                 parroquia: "Catedral",
                 lat: 10.0710, lng: -69.3200, 
                 consejos_comunales: [{ nombre: "CC Bararida", voceria_estatus: "Vigente" }],
-                organizacion_ejecutora: "Consejo Comunal Bararida",
                 proyectos: "Alumbrado Público y Transformadores Electrónicos",
                 estatus_proyecto: "En Ejecución",
                 ejecucion_fisica: 40,
@@ -236,12 +252,29 @@
                 nudo_critico: "Falta de transformador de 50KVA para el sector 2.",
                 sector: "Electricidad",
                 consulta: "7"
+            },
+            { 
+                id: "COM-004",
+                codigo: "COM-004",
+                nombre: "Comuna Carora Ancestral", 
+                municipio: "Torres", 
+                parroquia: "Trinidad Samuel",
+                lat: 10.1211, lng: -70.0801, 
+                consejos_comunales: [{ nombre: "CC Torrellas", voceria_estatus: "Vigente" }],
+                proyectos: "Reparación de Bomba Principal de Agua",
+                estatus_proyecto: "Pre-evaluación",
+                ejecucion_fisica: 10,
+                ejecucion_financiera: 0,
+                nudo_critico: "Revisión técnica de motor eléctrico pendiente.",
+                sector: "Agua Potable",
+                consulta: "7"
             }
         ];
 
         let usuariosSistema = [
-            { usuario: 'admin_cfg', pass: 'admin123', rol: 'Administrador' },
-            { usuario: 'scarly_creadora', pass: 'cfg2026', rol: 'Creadora del Sistema' }
+            { id: 1, usuario: 'scarly_creadora', pass: 'cfg2026', rol: 'Administrador' },
+            { id: 2, usuario: 'admin_cfg', pass: 'admin123', rol: 'Administrador' },
+            { id: 3, usuario: 'analista_lara', pass: 'lara2026', rol: 'Analista' }
         ];
 
         function handleLogin(event) {
@@ -253,8 +286,17 @@
                 usuarioActual = enc;
                 document.getElementById('login-screen').classList.add('hidden');
                 document.getElementById('app-screen').classList.remove('hidden');
-                document.getElementById('user-display').innerText = `👤 ${enc.usuario}`;
+                document.getElementById('user-display').innerText = `👤 ${enc.usuario} (${enc.rol})`;
+
+                if (enc.rol === 'Administrador') {
+                    document.getElementById('btn-admin-usuarios').classList.remove('hidden');
+                } else {
+                    document.getElementById('btn-admin-usuarios').classList.add('hidden');
+                }
+
                 setTimeout(() => { initMap(); cargarDatos(); }, 100);
+            } else {
+                alert("Usuario o contraseña incorrectos.");
             }
         }
 
@@ -329,7 +371,67 @@
             });
         }
 
-        // ACCIÓN BOTONES DE ESTATUS DE PROYECTO
+        // BARRA DE BÚSQUEDA MULTIPROPÓSITO
+        function buscarComunaOConsojo(val) {
+            let term = val.trim().toLowerCase();
+            let box = document.getElementById('resultados-busqueda');
+            
+            if (!term) {
+                box.classList.add('hidden');
+                box.innerHTML = '';
+                return;
+            }
+
+            let resultados = [];
+            let dataset = comunasData.filter(c => String(c.consulta || "7") === String(cicloActual));
+
+            dataset.forEach(c => {
+                let coincideComuna = c.nombre.toLowerCase().includes(term) || (c.codigo && c.codigo.toLowerCase().includes(term));
+                let ccs = Array.isArray(c.consejos_comunales) ? c.consejos_comunales : [];
+                let ccsCoincidentes = ccs.filter(cc => {
+                    let nom = typeof cc === 'string' ? cc : cc.nombre;
+                    return nom.toLowerCase().includes(term);
+                });
+
+                if (coincideComuna || ccsCoincidentes.length > 0) {
+                    resultados.push({ comuna: c, ccsCoincidentes: ccsCoincidentes, esComunaDirecta: coincideComuna });
+                }
+            });
+
+            if (resultados.length === 0) {
+                box.innerHTML = `<div class="p-3 text-xs text-slate-400 italic">No se encontraron resultados para "${val}".</div>`;
+            } else {
+                box.innerHTML = resultados.map(r => {
+                    let c = r.comuna;
+                    let detalleCC = r.ccsCoincidentes.length > 0 ? 
+                        `<div class="text-[10px] text-emerald-400 font-semibold mt-0.5">👥 CC Coincidente: ${r.ccsCoincidentes.map(x => typeof x === 'string' ? x : x.nombre).join(', ')}</div>` : '';
+                    
+                    return `
+                        <div onclick="seleccionarResultadoBusqueda('${c.id}')" class="p-2.5 hover:bg-slate-800/80 cursor-pointer transition-all space-y-0.5">
+                            <div class="flex justify-between items-center">
+                                <span class="font-bold text-xs text-indigo-300">${c.nombre} <span class="text-[10px] text-slate-500">(${c.codigo || 'COM'})</span></span>
+                                <span class="text-[9px] bg-indigo-500/10 text-indigo-400 px-2 py-0.5 rounded border border-indigo-500/20">${c.municipio} - ${c.parroquia}</span>
+                            </div>
+                            <p class="text-[11px] text-slate-300 font-medium">📌 Proyecto: ${c.proyectos || 'Sin proyecto asignado'}</p>
+                            ${detalleCC}
+                        </div>
+                    `;
+                }).join('');
+            }
+            box.classList.remove('hidden');
+        }
+
+        function seleccionarResultadoBusqueda(id) {
+            let c = comunasData.find(x => x.id === id || x.codigo === id);
+            if (c) {
+                mostrarFichaComuna(c);
+                if (c.lat && c.lng) map.setView([c.lat, c.lng], 14);
+            }
+            document.getElementById('resultados-busqueda').classList.add('hidden');
+            document.getElementById('input-busqueda-global').value = '';
+        }
+
+        // ACCIÓN BOTONES DE ESTATUS
         function filtrarPorEstatusProyecto(est) {
             let dataset = comunasData.filter(c => String(c.consulta || "7") === String(cicloActual) && c.estatus_proyecto === est);
             renderizarMapa(dataset);
@@ -382,6 +484,8 @@
                 </div>`;
             }).join('');
 
+            let esAdmin = usuarioActual && usuarioActual.rol === 'Administrador';
+
             document.getElementById('contenido-ficha').innerHTML = `
                 <div>
                     <h2 class="text-base font-bold text-white mb-1">${c.nombre}</h2>
@@ -430,7 +534,7 @@
                 <div class="bg-slate-900 p-3 rounded-xl border border-slate-800 space-y-2 text-xs">
                     <div class="flex justify-between items-center">
                         <span class="font-bold text-indigo-300">👥 Consejos Comunales (${ccs.length}/9)</span>
-                        <button onclick="abrirModalEditarCC('${c.id}')" class="text-[10px] bg-indigo-600 hover:bg-indigo-500 text-white px-2 py-1 rounded">✏️ Editar CCs y Vocería</button>
+                        ${esAdmin ? `<button onclick="abrirModalEditarCC('${c.id}')" class="text-[10px] bg-indigo-600 hover:bg-indigo-500 text-white px-2 py-1 rounded">✏️ Editar CCs</button>` : ''}
                     </div>
                     <div class="space-y-1 max-h-36 overflow-y-auto">${ccsHtml || '<p class="text-slate-500 italic">No hay consejos comunales registrados.</p>'}</div>
                 </div>
@@ -448,7 +552,7 @@
             document.getElementById('contenido-ficha').innerHTML = `
                 <div class="space-y-3 text-xs">
                     <div class="bg-slate-900 p-3 rounded-xl border border-slate-800 space-y-2">
-                        <div class="font-bold text-indigo-300 uppercase text-[10px]">Filtro Territorial:</div>
+                        <div class="font-bold text-indigo-300 uppercase text-[10px]">Filtro Territorial (9 Municipios):</div>
                         <div class="grid grid-cols-2 gap-2">
                             <div>
                                 <label class="text-[10px] text-slate-400">Municipio</label>
@@ -626,6 +730,91 @@
             box.scrollTop = box.scrollHeight;
         }
 
+        // EDICIÓN COMPLETA DE USUARIOS (CREACIÓN, EDICIÓN Y ELIMINACIÓN)
+        function abrirGestionUsuarios() {
+            document.getElementById('titulo-panel-lateral').innerText = "Gestión de Usuarios del Sistema";
+            const panel = document.getElementById('ficha-comuna');
+
+            let listaHtml = usuariosSistema.map((u, i) => `
+                <div class="bg-slate-900 p-3 rounded-xl border border-slate-800 space-y-2 text-xs">
+                    <div class="flex justify-between items-center">
+                        <span class="font-bold text-indigo-300">👤 ${u.usuario}</span>
+                        <span class="text-[10px] bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded font-bold">${u.rol}</span>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="text-[9px] text-slate-400">Contraseña</label>
+                            <input type="text" id="edit-pass-${i}" value="${u.pass}" class="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1 text-white text-[11px]">
+                        </div>
+                        <div>
+                            <label class="text-[9px] text-slate-400">Rol</label>
+                            <select id="edit-rol-${i}" class="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1 text-white text-[11px]">
+                                <option value="Administrador" ${u.rol === 'Administrador' ? 'selected' : ''}>Administrador</option>
+                                <option value="Analista" ${u.rol === 'Analista' ? 'selected' : ''}>Analista</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="flex justify-end space-x-2 pt-1">
+                        <button onclick="guardarEdicionUsuario(${i})" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-2.5 py-1 rounded text-[10px]">💾 Guardar</button>
+                        ${u.usuario !== usuarioActual.usuario ? `<button onclick="eliminarUsuario(${i})" class="bg-red-600/20 hover:bg-red-600/40 text-red-300 border border-red-500/30 px-2 py-1 rounded text-[10px]">🗑️ Eliminar</button>` : ''}
+                    </div>
+                </div>
+            `).join('');
+
+            document.getElementById('contenido-ficha').innerHTML = `
+                <div class="space-y-4 text-xs">
+                    <form onsubmit="crearUser(event)" class="bg-slate-900 p-3.5 rounded-xl border border-slate-800 space-y-2">
+                        <div class="font-bold text-white flex justify-between items-center">
+                            <span>➕ Registrar Nuevo Usuario</span>
+                        </div>
+                        <input type="text" id="nu-u" placeholder="Nombre de usuario" required class="w-full bg-slate-950 border border-slate-800 p-2 rounded text-white text-xs outline-none">
+                        <input type="password" id="nu-p" placeholder="Contraseña" required class="w-full bg-slate-950 border border-slate-800 p-2 rounded text-white text-xs outline-none">
+                        <select id="nu-r" class="w-full bg-slate-950 border border-slate-800 p-2 rounded text-white text-xs outline-none">
+                            <option value="Analista">Rol: Analista (Solo Lectura)</option>
+                            <option value="Administrador">Rol: Administrador (Acceso Total)</option>
+                        </select>
+                        <button type="submit" class="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-2 rounded-lg transition-all">Registrar Usuario</button>
+                    </form>
+
+                    <div class="space-y-2 border-t border-slate-800 pt-3">
+                        <div class="font-bold text-slate-300">Usuarios Registrados:</div>
+                        ${listaHtml}
+                    </div>
+                </div>
+            `;
+            panel.classList.remove('translate-x-full');
+        }
+
+        function guardarEdicionUsuario(idx) {
+            let p = document.getElementById(`edit-pass-${idx}`).value.trim();
+            let r = document.getElementById(`edit-rol-${idx}`).value;
+            if (p) {
+                usuariosSistema[idx].pass = p;
+                usuariosSistema[idx].rol = r;
+                alert(`Usuario ${usuariosSistema[idx].usuario} actualizado con éxito.`);
+                abrirGestionUsuarios();
+            }
+        }
+
+        function eliminarUsuario(idx) {
+            if (confirm(`¿Seguro que deseas eliminar al usuario ${usuariosSistema[idx].usuario}?`)) {
+                usuariosSistema.splice(idx, 1);
+                abrirGestionUsuarios();
+            }
+        }
+
+        function crearUser(e) {
+            e.preventDefault();
+            let u = document.getElementById('nu-u').value.trim();
+            let p = document.getElementById('nu-p').value.trim();
+            let r = document.getElementById('nu-r').value;
+            if (u && p) {
+                usuariosSistema.push({ id: Date.now(), usuario: u, pass: p, rol: r });
+                alert(`Usuario ${u} registrado correctamente.`);
+                abrirGestionUsuarios();
+            }
+        }
+
         // EDICIÓN DE CONSEJOS COMUNALES Y VOCERÍAS
         function abrirModalEditarCC(idComuna) {
             let c = comunasData.find(item => item.id === idComuna || item.codigo === idComuna);
@@ -743,43 +932,6 @@
 
             cont.innerHTML = `<div class="font-bold text-indigo-300 text-xs mb-2">Proyectos en ${sector}:</div>${html}`;
             cont.classList.remove('hidden');
-        }
-
-        // GESTIÓN DE USUARIOS
-        function abrirGestionUsuarios() {
-            document.getElementById('titulo-panel-lateral').innerText = "Gestión de Usuarios";
-            const panel = document.getElementById('ficha-comuna');
-
-            let html = usuariosSistema.map(u => `
-                <div class="bg-slate-900 p-2.5 rounded-xl border border-slate-800 flex justify-between text-xs">
-                    <div><b>${u.usuario}</b><br><span class="text-slate-400 text-[10px]">${u.rol}</span></div>
-                    <span class="text-indigo-400 font-bold">Activo</span>
-                </div>
-            `).join('');
-
-            document.getElementById('contenido-ficha').innerHTML = `
-                <div class="space-y-3 text-xs">
-                    <form onsubmit="crearUser(event)" class="bg-slate-900 p-3 rounded-xl border border-slate-800 space-y-2">
-                        <div class="font-bold text-white">Crear Nuevo Usuario</div>
-                        <input type="text" id="nu-u" placeholder="Usuario" required class="w-full bg-slate-950 border border-slate-800 p-2 rounded text-white">
-                        <input type="password" id="nu-p" placeholder="Contraseña" required class="w-full bg-slate-950 border border-slate-800 p-2 rounded text-white">
-                        <button type="submit" class="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-2 rounded">➕ Registrar</button>
-                    </form>
-                    <div class="space-y-2">${html}</div>
-                </div>
-            `;
-            panel.classList.remove('translate-x-full');
-        }
-
-        function crearUser(e) {
-            e.preventDefault();
-            let u = document.getElementById('nu-u').value.trim();
-            let p = document.getElementById('nu-p').value.trim();
-            if (u && p) {
-                usuariosSistema.push({ usuario: u, pass: p, rol: 'Analista' });
-                alert(`Usuario ${u} creado.`);
-                abrirGestionUsuarios();
-            }
         }
 
         function restablecerMapaCompleto() { filtrarPorCiclo(); if (map) map.setView([10.0678, -69.3474], 9); }
