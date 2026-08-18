@@ -68,20 +68,14 @@
 
         <!-- Contenido Central -->
         <div class="flex-1 flex overflow-hidden relative">
-            <!-- Sidebar de Módulos y Buscador -->
             <aside class="w-80 bg-slate-900/95 border-r border-slate-800 flex flex-col p-4 space-y-4 z-10 overflow-y-auto">
-                
-                <!-- Buscador de Comunas y Consejos Comunales -->
                 <div class="space-y-2">
                     <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Buscador Territorial</label>
                     <div class="relative">
                         <input type="text" id="buscador-territorial" oninput="filtrarComunas(this.value)" placeholder="Buscar comuna..." class="w-full bg-slate-950/60 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500">
                     </div>
-                    <!-- Resultados de búsqueda -->
                     <div id="resultados-busqueda" class="bg-slate-900 border border-slate-800 rounded-lg max-h-40 overflow-y-auto hidden text-xs divide-y divide-slate-800 shadow-xl"></div>
                 </div>
-
-                <!-- Selector de Municipios para Zoom Automático -->
                 <div class="space-y-2">
                     <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Zoom por Municipio</label>
                     <select id="select-municipio" onchange="zoomMunicipio(this.value)" class="w-full bg-slate-950/60 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500">
@@ -97,11 +91,8 @@
                         <option value="Urdaneta">Urdaneta (Siquisique)</option>
                     </select>
                 </div>
-
                 <hr class="border-slate-800 my-1">
-
                 <h2 class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Módulos Estratégicos</h2>
-                
                 <button onclick="alert('Módulo de Proyectos Emblemáticos en configuración')" class="flex items-center space-x-3 w-full bg-slate-950/40 hover:bg-slate-800/60 p-3 rounded-xl border border-slate-800 text-left text-sm transition-all group">
                     <span class="p-2 rounded-lg bg-indigo-500/10 text-indigo-400 group-hover:bg-indigo-500/20">⭐</span>
                     <div>
@@ -109,7 +100,6 @@
                         <div class="text-xs text-slate-400">Obras de alto impacto</div>
                     </div>
                 </button>
-
                 <button onclick="alert('Módulo de Ejecución Física en configuración')" class="flex items-center space-x-3 w-full bg-slate-950/40 hover:bg-slate-800/60 p-3 rounded-xl border border-slate-800 text-left text-sm transition-all group">
                     <span class="p-2 rounded-lg bg-emerald-500/10 text-emerald-400 group-hover:bg-emerald-500/20">📊</span>
                     <div>
@@ -118,39 +108,26 @@
                     </div>
                 </button>
             </aside>
-
-            <!-- Contenedor del Mapa -->
             <main class="flex-1 relative">
                 <div id="map"></div>
             </main>
-
-            <!-- Panel Lateral de Ficha Técnica de la Comuna -->
             <div id="ficha-comuna" class="absolute right-0 top-0 h-full w-96 bg-slate-900/95 border-l border-slate-800 shadow-2xl z-30 transform translate-x-full transition-transform duration-300 flex flex-col p-6 overflow-y-auto">
                 <div class="flex items-center justify-between pb-4 border-b border-slate-800">
                     <span class="text-xs font-semibold uppercase tracking-wider text-indigo-400">Ficha Técnica Comunal</span>
                     <button onclick="cerrarFicha()" class="text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 w-8 h-8 rounded-full flex items-center justify-center transition-colors">✕</button>
                 </div>
-                <div id="contenido-ficha" class="py-4 space-y-4 text-sm text-slate-200">
-                    <!-- Contenido dinámico desde la BD -->
-                </div>
+                <div id="contenido-ficha" class="py-4 space-y-4 text-sm text-slate-200"></div>
             </div>
         </div>
     </div>
 
-    <!-- Leaflet JS -->
+    <!-- Scripts -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // CONFIGURACIÓN DE SUPABASE (Inserta aquí tus credenciales reales del proyecto)
         const SUPABASE_URL ='https://pmjgcfushafjiqziwtjr.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_awAA6RvlPzMoHUyDhMzf_Q_6BFJlgQw';
         
-        let supabaseClient = null;
-        try {
-            supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        } catch (e) {
-            console.warn("Supabase no inicializado con credenciales reales todavía.");
-        }
-
+        let supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         let map;
         let comunasData = [];
 
@@ -166,41 +143,30 @@
             "Urdaneta": { lat: 10.6300, lng: -69.4800, zoom: 11 }
         };
 
-        // Respaldo local en caso de que la tabla aún esté vacía o en proceso de enlace
-        const comunasRespaldo = [
-            { 
-                codigo: "COM-001-LARA",
-                nombre: "Comuna Socialista Aguedo Felipe Alvarado", 
-                municipio: "Iribarren", 
-                parroquia: "Aguedo Felipe Alvarado",
-                lat: 10.1500, 
-                lng: -69.3200, 
-                cc_vigentes: 12, 
-                cc_vencidos: 2,
-                geometria: [[10.18, -69.35], [10.18, -69.28], [10.12, -69.28], [10.12, -69.35]],
-                proyectos: [
-                    { nombre: "Rehabilitación de Pozo de Agua Profunda", consulta: "7ma Consulta", sector: "Agua", ejecucion: 85 }
-                ]
-            }
-        ];
+        const comunasRespaldo = [{ 
+            codigo: "COM-001-LARA",
+            nombre: "Comuna Socialista Aguedo Felipe Alvarado", 
+            municipio: "Iribarren", 
+            parroquia: "Aguedo Felipe Alvarado",
+            lat: 10.1500, lng: -69.3200, 
+            cc_vigentes: 12, cc_vencidos: 2,
+            geometria: [[10.18, -69.35], [10.18, -69.28], [10.12, -69.28], [10.12, -69.35]],
+            proyectos: [{ nombre: "Rehabilitación de Pozo de Agua Profunda", consulta: "7ma Consulta", sector: "Agua", ejecucion: 85 }]
+        }];
 
         function handleLogin(event) {
             event.preventDefault();
             const user = document.getElementById('username').value;
             const pass = document.getElementById('password').value;
-
             if (user === 'admin_cfg' && pass === 'admin123') {
                 document.getElementById('login-screen').classList.add('hidden');
                 document.getElementById('app-screen').classList.remove('hidden');
                 document.getElementById('user-display').innerText = `Usuario: ${user} (Admin)`;
-                
-                setTimeout(() => {
-                    initMap();
-                    cargarDatosSupabase();
-                }, 100);
+                initMap();
+                cargarDatosSupabase();
             } else {
                 const err = document.getElementById('login-error');
-                err.innerText = 'Credenciales incorrectas. Verifique usuario o contraseña.';
+                err.innerText = 'Credenciales incorrectas.';
                 err.classList.remove('hidden');
             }
         }
@@ -208,177 +174,56 @@
         function handleLogout() {
             document.getElementById('app-screen').classList.add('hidden');
             document.getElementById('login-screen').classList.remove('hidden');
-            document.getElementById('username').value = '';
-            document.getElementById('password').value = '';
         }
 
         function initMap() {
             if (!map) {
                 map = L.map('map').setView([10.0678, -69.3474], 9);
-
-                // Mapa base claro con máxima nitidez y profundidad
                 L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-                    maxZoom: 18,
-                    attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
-                    subdomains: 'abcd'
+                    maxZoom: 18, attribution: '&copy; OpenStreetMap', subdomains: 'abcd'
                 }).addTo(map);
             }
         }
 
         async function cargarDatosSupabase() {
             const statusBadge = document.getElementById('db-status');
-            
             try {
-                if (supabaseClient && SUPABASE_URL !== 'https://pmjgcfushafjiqziwtjr.supabase.co') {
-                    // Consulta a la tabla 'comunas' en Supabase
-                    const { data, error } = await supabaseClient.from('comunas').select('*');
-                    console.log("Datos que devuelve Supabase:", data, error);
-                    
-                    if (error) throw error;
-                    
-                    if (data && data.length > 0) {
-                        comunasData = data;
-                        statusBadge.className = "text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 px-2.5 py-1 rounded-full";
-                        statusBadge.innerText = "BD Conectada (Supabase)";
-                    } else {
-                        throw new Error("No hay registros en la tabla, usando respaldo.");
-                    }
+                const { data, error } = await supabaseClient.from('comunas').select('*');
+                if (error) throw error;
+                if (data && data.length > 0) {
+                    comunasData = data;
+                    statusBadge.className = "text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 px-2.5 py-1 rounded-full";
+                    statusBadge.innerText = "BD Conectada (Supabase)";
                 } else {
-                    throw new Error("Credenciales pendientes");
+                    throw new Error("No hay registros en la tabla.");
                 }
             } catch (err) {
-                console.warn("Usando datos de respaldo locales:", err.message);
+                console.warn("Usando respaldo:", err.message);
                 comunasData = comunasRespaldo;
                 statusBadge.className = "text-[10px] bg-indigo-500/10 text-indigo-300 border border-indigo-500/30 px-2.5 py-1 rounded-full";
                 statusBadge.innerText = "Modo Híbrido / Local";
             }
-
             renderizarComunasEnMapa();
         }
 
         function renderizarComunasEnMapa() {
             comunasData.forEach(c => {
-                let geo = c.geometria;
-                if (typeof geo === 'string') {
-                    try { geo = JSON.parse(geo); } catch(e) { geo = [[c.lat+0.03, c.lng-0.03], [c.lat+0.03, c.lng+0.03], [c.lat-0.03, c.lng+0.03], [c.lat-0.03, c.lng-0.03]]; }
-                }
-
-                let polygon = L.polygon(geo, {
-                    color: '#4f46e5',
-                    weight: 2,
-                    fillColor: '#6366f1',
-                    fillOpacity: 0.3
-                }).addTo(map);
-
-                polygon.on('click', () => mostrarFichaComuna(c));
-
-                let marker = L.marker([c.lat, c.lng]).addTo(map);
-                marker.on('click', () => mostrarFichaComuna(c));
-                marker.bindPopup(`
-                    <div class="p-1">
-                        <b class="text-indigo-600">${c.nombre}</b><br>
-                        <span class="text-xs text-slate-500">Municipio: ${c.municipio}</span><br>
-                        <p class="text-[10px] text-indigo-600 mt-1 font-semibold">🔍 Clic para ver ficha técnica</p>
-                    </div>
-                `);
+                let geo = Array.isArray(c.geometria) ? c.geometria : [[c.lat+0.03, c.lng-0.03], [c.lat+0.03, c.lng+0.03], [c.lat-0.03, c.lng+0.03], [c.lat-0.03, c.lng-0.03]];
+                L.polygon(geo, { color: '#4f46e5', weight: 2, fillColor: '#6366f1', fillOpacity: 0.3 }).addTo(map).on('click', () => mostrarFichaComuna(c));
+                L.marker([c.lat, c.lng]).addTo(map).on('click', () => mostrarFichaComuna(c)).bindPopup(c.nombre);
             });
         }
 
         function mostrarFichaComuna(c) {
             const panel = document.getElementById('ficha-comuna');
-            const contenido = document.getElementById('contenido-ficha');
-
-            let proyectosHTML = '<p class="text-xs text-slate-400">Sin proyectos registrados.</p>';
-            if (c.proyectos && Array.isArray(c.proyectos)) {
-                proyectosHTML = c.proyectos.map(p => `
-                    <div class="bg-slate-950/60 p-3 rounded-xl border border-slate-800 space-y-2">
-                        <div class="font-medium text-white text-xs">${p.nombre}</div>
-                        <div class="flex justify-between text-[10px] text-slate-400">
-                            <span class="bg-slate-800 border border-slate-700 px-2 py-0.5 rounded text-indigo-300">${p.consulta || 'Consulta Popular'}</span>
-                            <span class="bg-slate-800 border border-slate-700 px-2 py-0.5 rounded text-amber-300">${p.sector || 'General'}</span>
-                        </div>
-                        <div class="space-y-1">
-                            <div class="flex justify-between text-[10px]">
-                                <span class="text-slate-400">Ejecución Física</span>
-                                <span class="text-emerald-400 font-bold">${p.ejecucion || 0}%</span>
-                            </div>
-                            <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
-                                <div class="bg-emerald-500 h-full rounded-full" style="width: ${p.ejecucion || 0}%"></div>
-                            </div>
-                        </div>
-                    </div>
-                `).join('');
-            }
-
-            contenido.innerHTML = `
-                <div>
-                    <h2 class="text-base font-bold text-white">${c.nombre}</h2>
-                    <span class="inline-block bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 text-[10px] font-semibold px-2 py-0.5 rounded mt-1">Código: ${c.codigo}</span>
-                </div>
-                <div class="bg-slate-950/50 p-3 rounded-xl border border-slate-800 space-y-1 text-xs">
-                    <div class="text-slate-300"><b>Municipio:</b> ${c.municipio}</div>
-                    <div class="text-slate-300"><b>Parroquia:</b> ${c.parroquia}</div>
-                </div>
-                <div class="grid grid-cols-2 gap-2">
-                    <div class="bg-emerald-500/10 border border-emerald-500/20 p-3 rounded-xl text-center">
-                        <div class="text-lg font-bold text-emerald-400">${c.cc_vigentes || 0}</div>
-                        <div class="text-[10px] text-emerald-300 uppercase font-medium">CC Vigentes</div>
-                    </div>
-                    <div class="bg-red-500/10 border border-red-500/20 p-3 rounded-xl text-center">
-                        <div class="text-lg font-bold text-red-400">${c.cc_vencidos || 0}</div>
-                        <div class="text-[10px] text-red-300 uppercase font-medium">CC Vencidos</div>
-                    </div>
-                </div>
-                <div>
-                    <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Proyectos Asociados</h3>
-                    <div class="space-y-2">
-                        ${proyectosHTML}
-                    </div>
-                </div>
-            `;
-
+            document.getElementById('contenido-ficha').innerHTML = `<h2 class="text-base font-bold">${c.nombre}</h2><p>Municipio: ${c.municipio}</p>`;
             panel.classList.remove('translate-x-full');
             map.setView([c.lat, c.lng], 13);
         }
 
-        function cerrarFicha() {
-            document.getElementById('ficha-comuna').classList.add('translate-x-full');
-        }
-
-        function zoomMunicipio(nombreMunicipio) {
-            if (nombreMunicipio && municipiosCoordenadas[nombreMunicipio]) {
-                const mun = municipiosCoordenadas[nombreMunicipio];
-                map.setView([mun.lat, mun.lng], mun.zoom);
-            }
-        }
-
-        function filtrarComunas(texto) {
-            const contenedor = document.getElementById('resultados-busqueda');
-            if (!texto.trim()) {
-                contenedor.classList.add('hidden');
-                contenedor.innerHTML = '';
-                return;
-            }
-
-            const filtradas = comunasData.filter(c => 
-                c.nombre.toLowerCase().includes(texto.toLowerCase()) || 
-                c.municipio.toLowerCase().includes(texto.toLowerCase()) ||
-                c.codigo.toLowerCase().includes(texto.toLowerCase())
-            );
-
-            if (filtradas.length > 0) {
-                contenedor.innerHTML = filtradas.map(c => `
-                    <div onclick="mostrarFichaComuna(comunasData.find(x => x.codigo === '${c.codigo}')); document.getElementById('resultados-busqueda').classList.add('hidden');" class="p-2.5 hover:bg-slate-800 cursor-pointer transition-colors">
-                        <div class="font-medium text-indigo-300">${c.nombre}</div>
-                        <div class="text-[10px] text-slate-400">Municipio: ${c.municipio} • Cod: ${c.codigo}</div>
-                    </div>
-                `).join('');
-                contenedor.classList.remove('hidden');
-            } else {
-                contenedor.innerHTML = `<div class="p-3 text-slate-400 text-center">No se encontraron comunas</div>`;
-                contenedor.classList.remove('hidden');
-            }
-        }
+        function cerrarFicha() { document.getElementById('ficha-comuna').classList.add('translate-x-full'); }
+        function zoomMunicipio(m) { if (m && municipiosCoordenadas[m]) map.setView([municipiosCoordenadas[m].lat, municipiosCoordenadas[m].lng], municipiosCoordenadas[m].zoom); }
     </script>
 </body>
 </html>
+```[cite: 1]
