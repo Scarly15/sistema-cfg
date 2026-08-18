@@ -137,7 +137,7 @@
                 
                 <!-- NUEVO BOTÓN ASISTENTE IA -->
                 <button onclick="abrirResumenIA()" class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-medium py-2.5 rounded-xl text-xs shadow-lg transition-all flex items-center justify-center space-x-2">
-                    <span>✨ Resumen Ejecutivo con IA</span>
+                    <span>✨ Resumen Ejecutivo </span>
                 </button>
 
                 <button onclick="cargarDatosSupabase()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 py-2 rounded-lg text-xs transition-colors">
@@ -251,10 +251,10 @@
                     throw new Error("Tabla sin registros.");
                 }
             } catch (err) {
-                console.warn("Usando datos de respaldo locales:", err.message);
+                console.error("DETALLE DEL ERROR DE SUPABASE:", err);
                 comunasData = comunasRespaldo;
                 statusBadge.className = "text-[10px] bg-indigo-500/10 text-indigo-300 border border-indigo-500/30 px-2.5 py-1 rounded-full";
-                statusBadge.innerText = "Modo Respaldo Activo";
+                statusBadge.innerText = "Error BD: " + err.message;
             }
             actualizarEstadisticas(comunasData);
             renderizarComunasEnMapa(comunasData);
