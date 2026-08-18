@@ -21,61 +21,52 @@
             border-radius: 0.75rem;
             box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
         }
-        /* Custom Scrollbar */
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: #0f172a; }
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: #475569; }
     </style>
 </head>
 <body class="bg-slate-950 text-slate-100 font-sans antialiased overflow-hidden">
 
-    <!-- PANTALLA DE LOGIN -->
+    <!-- LOGIN -->
     <div id="login-screen" class="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-900 px-4 z-50 relative">
         <div class="max-w-md w-full bg-slate-900/90 backdrop-blur-md border border-slate-800 p-8 rounded-2xl shadow-2xl">
             <div class="text-center mb-8">
                 <div class="flex justify-center mb-3">
-                    <div class="w-12 h-12 bg-indigo-600/20 border border-indigo-500/40 rounded-xl flex items-center justify-center text-indigo-400 font-bold text-xl">
-                        CFG
-                    </div>
+                    <div class="w-12 h-12 bg-indigo-600/20 border border-indigo-500/40 rounded-xl flex items-center justify-center text-indigo-400 font-bold text-xl">CFG</div>
                 </div>
-                <span class="bg-indigo-500/10 text-indigo-400 text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-wider border border-indigo-500/20">Consejo Federal de Gobierno</span>
-                <h1 class="text-2xl font-bold mt-3 text-white tracking-tight">Monitoreo Territorial Lara</h1>
-                <p class="text-xs text-slate-400 mt-1">Plataforma de Control Comunal</p>
+                <span class="bg-indigo-500/10 text-indigo-400 text-xs font-semibold px-3 py-1 rounded-full uppercase border border-indigo-500/20">Consejo Federal de Gobierno</span>
+                <h1 class="text-2xl font-bold mt-3 text-white">Monitoreo Territorial Lara</h1>
             </div>
             
-            <form id="login-form" onsubmit="handleLogin(event)" class="space-y-5">
+            <form id="login-form" onsubmit="handleLogin(event)" class="space-y-4">
                 <div>
-                    <label class="block text-xs font-medium text-slate-300 uppercase mb-2">Usuario</label>
-                    <input type="text" id="username" required class="w-full bg-slate-950/80 border border-slate-800 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-indigo-500 transition-colors" placeholder="Ingrese su usuario">
+                    <label class="block text-xs font-medium text-slate-300 uppercase mb-1">Usuario</label>
+                    <input type="text" id="username" required class="w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-3 text-sm text-white focus:border-indigo-500 outline-none" placeholder="Ingresar usuario">
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-slate-300 uppercase mb-2">Contraseña</label>
-                    <input type="password" id="password" required class="w-full bg-slate-950/80 border border-slate-800 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-indigo-500 transition-colors" placeholder="••••••••">
+                    <label class="block text-xs font-medium text-slate-300 uppercase mb-1">Contraseña</label>
+                    <input type="password" id="password" required class="w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-3 text-sm text-white focus:border-indigo-500 outline-none" placeholder="••••••••">
                 </div>
-                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-3 rounded-lg text-sm transition-all shadow-lg shadow-indigo-600/30 cursor-pointer">
+                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-3 rounded-lg text-sm shadow-lg shadow-indigo-600/30 cursor-pointer">
                     Ingresar al Sistema Táctico
                 </button>
             </form>
-            <p id="login-error" class="text-red-400 text-xs text-center mt-4 hidden bg-red-500/10 border border-red-500/20 py-2 rounded-lg"></p>
+            <p id="login-error" class="text-red-400 text-xs text-center mt-3 hidden bg-red-500/10 border border-red-500/20 py-2 rounded-lg"></p>
         </div>
     </div>
 
-    <!-- DASHBOARD PRINCIPAL -->
+    <!-- DASHBOARD -->
     <div id="app-screen" class="hidden h-screen flex flex-col">
         <header class="bg-slate-900 border-b border-slate-800 h-16 flex items-center justify-between px-6 z-30">
             <div class="flex items-center space-x-3">
-                <div class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center font-bold text-white text-xs shadow-md shadow-indigo-500/20">
-                    CFG
-                </div>
-                <div class="bg-indigo-500 w-2 h-2 rounded-full animate-pulse"></div>
+                <div class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center font-bold text-white text-xs">CFG</div>
                 <span class="font-bold tracking-wide text-sm text-white">CFG LARA <span class="text-indigo-400 font-light">| Centro Táctico</span></span>
             </div>
 
-            <!-- SELECTOR DE CONSULTA POPULAR (SIN CANTIDAD DE COMUNAS AL LADO) -->
             <div class="flex items-center space-x-3 bg-slate-950 border border-slate-800 px-3 py-1.5 rounded-xl">
                 <span class="text-[11px] text-slate-400 uppercase font-semibold">Ciclo:</span>
-                <select id="select-ciclo-consulta" onchange="cambiarCicloConsulta(this.value)" class="bg-slate-900 text-indigo-300 text-xs font-bold border border-slate-700 rounded-lg px-3 py-1 focus:outline-none focus:border-indigo-500 cursor-pointer">
+                <select id="select-ciclo-consulta" onchange="cambiarCicloConsulta(this.value)" class="bg-slate-900 text-indigo-300 text-xs font-bold border border-slate-700 rounded-lg px-3 py-1 outline-none cursor-pointer">
                     <option value="7">7ma Consulta Popular</option>
                     <option value="8">8va Consulta Popular</option>
                 </select>
@@ -84,29 +75,28 @@
             <div class="flex items-center space-x-3">
                 <span id="user-display" class="text-xs bg-indigo-500/10 border border-indigo-500/30 px-3 py-1.5 rounded-full text-indigo-300 font-medium"></span>
                 
-                <!-- BOTÓN EXCLUSIVO CREADORA DE SISTEMA -->
                 <button id="btn-admin-usuarios" onclick="abrirGestionUsuarios()" class="hidden text-xs bg-purple-600 hover:bg-purple-500 text-white border border-purple-400/30 px-3 py-1.5 rounded-lg transition-all shadow-md shadow-purple-600/20 cursor-pointer">
                     ⚙️ Crear / Gestionar Usuarios
                 </button>
 
-                <button onclick="handleLogout()" class="text-xs bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 px-3 py-1.5 rounded-lg transition-colors cursor-pointer">
+                <button onclick="handleLogout()" class="text-xs bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 px-3 py-1.5 rounded-lg cursor-pointer">
                     Cerrar Sesión
                 </button>
             </div>
         </header>
 
         <div class="flex-1 flex overflow-hidden relative">
-            <!-- PANEL LATERAL IZQUIERDO -->
+            <!-- PANEL LATERAL -->
             <aside class="w-80 bg-slate-900 border-r border-slate-800 flex flex-col p-4 space-y-3 z-20 overflow-y-auto">
                 <div class="space-y-1">
-                    <label class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Buscador Territorial</label>
-                    <input type="text" id="buscador-territorial" oninput="filtrarComunas(this.value)" placeholder="Buscar por comuna o municipio..." class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500">
-                    <div id="resultados-busqueda" class="bg-slate-950 border border-slate-800 rounded-lg max-h-40 overflow-y-auto hidden text-xs divide-y divide-slate-800/60 shadow-xl"></div>
+                    <label class="text-[11px] font-semibold text-slate-400 uppercase">Buscador Territorial</label>
+                    <input type="text" id="buscador-territorial" oninput="filtrarComunas(this.value)" placeholder="Buscar por comuna o municipio..." class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-indigo-500">
+                    <div id="resultados-busqueda" class="bg-slate-950 border border-slate-800 rounded-lg max-h-40 overflow-y-auto hidden text-xs divide-y divide-slate-800 shadow-xl"></div>
                 </div>
 
                 <div class="space-y-1">
-                    <label class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Zoom por Municipio</label>
-                    <select id="select-municipio" onchange="zoomMunicipio(this.value)" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500 cursor-pointer">
+                    <label class="text-[11px] font-semibold text-slate-400 uppercase">Zoom por Municipio</label>
+                    <select id="select-municipio" onchange="zoomMunicipio(this.value)" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white outline-none cursor-pointer">
                         <option value="">Seleccione Municipio...</option>
                         <option value="Iribarren">Iribarren (Barquisimeto)</option>
                         <option value="Palavecino">Palavecino (Cabudare)</option>
@@ -120,13 +110,13 @@
                     </select>
                 </div>
 
-                <hr class="border-slate-800/80 my-1">
+                <hr class="border-slate-800 my-1">
 
-                <!-- PIPELINE DE ESTATUS DE PROYECTOS EN LA CONSULTA -->
+                <!-- PIPELINE DE ESTATUS (CON ESTATUS CULMINADO) -->
                 <div class="bg-slate-950 border border-slate-800 rounded-xl p-3 space-y-2">
                     <div class="flex justify-between items-center text-xs font-bold text-slate-200">
                         <span>ESTATUS DE PROYECTOS</span>
-                        <span id="total-proyectos-cargados" class="text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded border border-indigo-500/20">0 Proyectos</span>
+                        <span id="total-proyectos-cargados" class="text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded border border-indigo-500/20">0</span>
                     </div>
                     <div class="grid grid-cols-2 gap-1.5 text-[11px]">
                         <button onclick="filtrarPorEstatusProyecto('Borrador')" class="bg-slate-900 hover:bg-slate-800 border border-slate-800 p-2 rounded-lg text-left flex justify-between items-center">
@@ -146,24 +136,33 @@
                             <span id="cant-ejec" class="font-bold text-amber-300">0</span>
                         </button>
                     </div>
+                    <button onclick="filtrarPorEstatusProyecto('Culminado')" class="w-full bg-emerald-950/60 hover:bg-emerald-900/60 border border-emerald-500/30 p-2 rounded-lg text-xs flex justify-between items-center text-emerald-300 font-semibold cursor-pointer">
+                        <span>🏁 Culminados / Verificados</span>
+                        <span id="cant-culminado" class="font-bold bg-emerald-500/20 px-2 py-0.5 rounded">0</span>
+                    </button>
                 </div>
 
-                <!-- MÓDULOS ESTRATÉGICOS -->
+                <!-- BOTONES DE MÓDULOS -->
                 <div class="space-y-2">
-                    <button onclick="abrirMatrizPreferencias()" class="w-full bg-slate-950 hover:bg-slate-800 border border-slate-800 text-emerald-300 font-medium py-2 px-3 rounded-xl text-xs flex items-center justify-between transition-all cursor-pointer">
-                        <span>📊 Matriz de Inversión</span>
-                        <span class="text-[10px] bg-emerald-500/20 px-2 py-0.5 rounded text-emerald-400">BigData</span>
+                    <button onclick="filtrarProyectosEmblematicos()" class="w-full bg-gradient-to-r from-amber-600/20 to-orange-600/20 hover:from-amber-600/30 hover:to-orange-600/30 border border-amber-500/40 text-amber-300 font-medium py-2.5 px-3 rounded-xl text-xs flex items-center justify-between transition-all cursor-pointer shadow-md">
+                        <span>⭐ Proyectos Emblemáticos</span>
+                        <span class="text-[10px] bg-amber-500/30 px-2 py-0.5 rounded font-bold">Lara</span>
                     </button>
 
-                    <button onclick="abrirGeneradorReportes()" class="w-full bg-slate-950 hover:bg-slate-800 border border-slate-800 text-amber-300 font-medium py-2 px-3 rounded-xl text-xs flex items-center justify-between transition-all cursor-pointer">
-                        <span>📄 Reporte Ejecutivo</span>
-                        <span class="text-[10px] bg-amber-500/20 px-2 py-0.5 rounded text-amber-400">Resumen</span>
+                    <button onclick="abrirMatrizPreferencias()" class="w-full bg-slate-950 hover:bg-slate-800 border border-slate-800 text-emerald-300 font-medium py-2 px-3 rounded-xl text-xs flex items-center justify-between transition-all cursor-pointer">
+                        <span>📊 Sector de Inversión (Matriz)</span>
+                        <span class="text-[10px] bg-emerald-500/20 px-2 py-0.5 rounded text-emerald-400">Sectores</span>
+                    </button>
+
+                    <button onclick="abrirGeneradorReportesIA()" class="w-full bg-slate-950 hover:bg-slate-800 border border-slate-800 text-indigo-300 font-medium py-2 px-3 rounded-xl text-xs flex items-center justify-between transition-all cursor-pointer">
+                        <span>🤖 Reporte Ejecutivo con IA</span>
+                        <span class="text-[10px] bg-indigo-500/20 px-2 py-0.5 rounded text-indigo-400">IA GPT</span>
                     </button>
                 </div>
 
-                <hr class="border-slate-800/80 my-1">
+                <hr class="border-slate-800 my-1">
 
-                <button onclick="cargarDatosSupabase()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 py-2 rounded-lg text-xs transition-colors cursor-pointer">
+                <button onclick="restablecerMapaCompleto()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 py-2 rounded-lg text-xs cursor-pointer">
                     🔄 Restablecer Vista Mapa
                 </button>
             </aside>
@@ -172,11 +171,11 @@
                 <div id="map"></div>
             </main>
 
-            <!-- FICHA COMUNAL / PANEL LATERAL DERECHO -->
+            <!-- FICHA LATERAL DERECHA -->
             <div id="ficha-comuna" class="absolute right-0 top-0 h-full w-[440px] bg-slate-950 border-l border-slate-800 shadow-2xl z-50 transform translate-x-full transition-transform duration-300 flex flex-col p-6 overflow-y-auto">
                 <div class="flex items-center justify-between pb-4 border-b border-slate-800">
                     <span id="titulo-panel-lateral" class="text-xs font-semibold uppercase tracking-wider text-indigo-400">Ficha Técnica Comunal</span>
-                    <button onclick="cerrarFicha()" class="text-slate-400 hover:text-white bg-slate-900 hover:bg-slate-800 w-8 h-8 rounded-full flex items-center justify-center transition-colors cursor-pointer border border-slate-700">✕</button>
+                    <button onclick="cerrarFicha()" class="text-slate-400 hover:text-white bg-slate-900 hover:bg-slate-800 w-8 h-8 rounded-full flex items-center justify-center border border-slate-700 cursor-pointer">✕</button>
                 </div>
                 <div id="contenido-ficha" class="py-4 space-y-4 text-sm text-slate-100"></div>
             </div>
@@ -196,7 +195,6 @@
         let marcadoresLayer = L.layerGroup();
         let usuarioActual = null;
 
-        // BASE DE DATOS DE USUARIOS (CREADORA PRIVILEGIADA)
         let usuariosSistema = [
             { usuario: 'scarly_creadora', pass: 'cfg2026', rol: 'Creadora del Sistema', esCreadora: true },
             { usuario: 'admin_cfg', pass: 'admin123', rol: 'Administrador', esCreadora: false }
@@ -221,17 +219,12 @@
                 municipio: "Simón Planas", 
                 parroquia: "Sarare",
                 lat: 9.8078, lng: -69.0528, 
-                cc_vigentes: 7, cc_vencidos: 1,
-                consejos_comunales: [
-                    "CC La Miel Centro", "CC Sabana Verde", "CC El Roble", 
-                    "CC Simón Bolívar", "CC Las Marías", "CC Camoruco", "CC Los Pinos", "CC El Milagro"
-                ],
+                consejos_comunales: ["CC La Miel Centro", "CC Sabana Verde", "CC El Roble", "CC Simón Bolívar", "CC Las Marías", "CC Camoruco", "CC Los Pinos"],
                 organizacion_ejecutora: "Consejo Comunal La Miel Centro",
                 proyectos: "Rehabilitación de Red de Agua Potable y Estación de Bombeo",
                 estatus_proyecto: "En Ejecución",
-                avance_fisico: 80,
-                avance_financiero: 75,
                 sector: "Agua Potable",
+                es_emblematico: true,
                 consulta: "7"
             },
             { 
@@ -240,17 +233,12 @@
                 municipio: "Iribarren", 
                 parroquia: "Concepción",
                 lat: 10.0600, lng: -69.3300, 
-                cc_vigentes: 9, cc_vencidos: 0,
-                consejos_comunales: [
-                    "CC Barrio Unión Sector 1", "CC Barrio Unión Sector 2", "CC La Batalla", 
-                    "CC Ruiz Pineda", "CC 12 de Octubre", "CC Transbarca", "CC San José", "CC La Paz", "CC El Carmen"
-                ],
+                consejos_comunales: ["CC Barrio Unión Sector 1", "CC La Batalla", "CC Ruiz Pineda", "CC 12 de Octubre", "CC San José"],
                 organizacion_ejecutora: "Consejo Comunal La Batalla",
-                proyectos: "Sustitución de Colectores de Aguas Servidas",
-                estatus_proyecto: "En Evaluación",
-                avance_fisico: 15,
-                avance_financiero: 20,
+                proyectos: "Sustitución Colectores de Aguas Servidas",
+                estatus_proyecto: "Culminado",
                 sector: "Aguas Servidas",
+                es_emblematico: true,
                 consulta: "7"
             },
             { 
@@ -259,16 +247,12 @@
                 municipio: "Jiménez", 
                 parroquia: "Catedral",
                 lat: 9.9800, lng: -69.7800, 
-                cc_vigentes: 6, cc_vencidos: 2,
-                consejos_comunales: [
-                    "CC Ceiba Sur", "CC La Ermita", "CC Plaza Bolívar", "CC San Rafael", "CC El Tunal", "CC La Estación"
-                ],
+                consejos_comunales: ["CC Ceiba Sur", "CC La Ermita", "CC Plaza Bolívar", "CC San Rafael"],
                 organizacion_ejecutora: "Consejo Comunal Ceiba Sur",
                 proyectos: "Asfaltado y Electrificación Vial Agrícola",
-                estatus_proyecto: "Pre-evaluación",
-                avance_fisico: 5,
-                avance_financiero: 0,
+                estatus_proyecto: "En Evaluación",
                 sector: "Vialidad",
+                es_emblematico: false,
                 consulta: "7"
             },
             { 
@@ -277,16 +261,12 @@
                 municipio: "Palavecino", 
                 parroquia: "Cabudare",
                 lat: 10.2350, lng: -69.2550, 
-                cc_vigentes: 5, cc_vencidos: 1,
-                consejos_comunales: [
-                    "CC Los Rastrojos", "CC La Alfarería", "CC Tarabana", "CC Agua Viva Centro", "CC El Recreo"
-                ],
+                consejos_comunales: ["CC Los Rastrojos", "CC La Alfarería", "CC Tarabana"],
                 organizacion_ejecutora: "Consejo Comunal Los Rastrojos",
                 proyectos: "Adquisición e Instalación de Transformadores Eléctricos",
                 estatus_proyecto: "Borrador",
-                avance_fisico: 0,
-                avance_financiero: 0,
                 sector: "Electricidad",
+                es_emblematico: false,
                 consulta: "8"
             }
         ];
@@ -302,16 +282,16 @@
                 usuarioActual = encontrado;
                 document.getElementById('login-screen').classList.add('hidden');
                 document.getElementById('app-screen').classList.remove('hidden');
-                
                 document.getElementById('user-display').innerHTML = `👤 ${encontrado.usuario} <span class="text-[10px] opacity-75">(${encontrado.rol})</span>`;
                 
-                // Si es la creadora, habilitar botón especial de gestión de usuarios
                 if (encontrado.esCreadora) {
                     document.getElementById('btn-admin-usuarios').classList.remove('hidden');
                 }
 
-                initMap();
-                cargarDatosSupabase();
+                setTimeout(() => {
+                    initMap();
+                    cargarDatosSupabase();
+                }, 100);
             } else {
                 const err = document.getElementById('login-error');
                 err.innerText = 'Usuario o contraseña no autorizados.';
@@ -328,7 +308,7 @@
 
         function initMap() {
             if (!map) {
-                map = L.map('map').setView([10.0678, -69.3474], 10);
+                map = L.map('map').setView([10.0678, -69.3474], 9);
                 L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
                     maxZoom: 18, attribution: '&copy; OpenStreetMap & CFG Lara'
                 }).addTo(map);
@@ -339,7 +319,7 @@
         async function cargarDatosSupabase() {
             try {
                 const { data, error } = await supabaseClient.from('comunas').select('*');
-                if (error || !data || data.length === 0) throw error || new Error("Sin datos");
+                if (error || !data || data.length === 0) throw error || new Error("Sin datos de DB");
                 comunasData = data;
             } catch (err) {
                 comunasData = [...comunasRespaldo];
@@ -365,18 +345,20 @@
             const preeval = data.filter(c => c.estatus_proyecto === 'Pre-evaluación').length;
             const evaluacion = data.filter(c => c.estatus_proyecto === 'En Evaluación').length;
             const ejec = data.filter(c => c.estatus_proyecto === 'En Ejecución').length;
+            const culminado = data.filter(c => c.estatus_proyecto === 'Culminado').length;
 
             document.getElementById('cant-borrador').innerText = borrador;
             document.getElementById('cant-preeval').innerText = preeval;
             document.getElementById('cant-eval').innerText = evaluacion;
             document.getElementById('cant-ejec').innerText = ejec;
+            document.getElementById('cant-culminado').innerText = culminado;
         }
 
         function renderizarComunasEnMapa(data) {
             marcadoresLayer.clearLayers();
             data.forEach(c => {
                 if (c.lat && c.lng) {
-                    let color = '#6366f1'; // Azul base
+                    let color = '#6366f1'; 
                     if (c.estatus_proyecto === 'En Ejecución') color = '#f59e0b';
                     else if (c.estatus_proyecto === 'En Evaluación') color = '#a855f7';
                     else if (c.estatus_proyecto === 'Pre-evaluación') color = '#38bdf8';
@@ -384,11 +366,12 @@
 
                     let icon = L.divIcon({
                         className: 'pin',
-                        html: `<div style="background-color: ${color}; width: 14px; height: 14px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 8px rgba(0,0,0,0.4);"></div>`,
-                        iconSize: [14, 14]
+                        html: `<div style="background-color: ${color}; width: 16px; height: 16px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 10px rgba(0,0,0,0.5);"></div>`,
+                        iconSize: [16, 16]
                     });
 
                     let marker = L.marker([c.lat, c.lng], { icon: icon });
+                    marker.bindPopup(`<b>${c.nombre}</b><br><span style="font-size: 11px;">Municipio: ${c.municipio}</span>`);
                     marker.on('click', () => {
                         mostrarFichaComuna(c);
                         map.setView([c.lat, c.lng], 13);
@@ -402,7 +385,6 @@
             document.getElementById('titulo-panel-lateral').innerText = "Ficha Técnica Comunal";
             const panel = document.getElementById('ficha-comuna');
 
-            // Formatear Consejos Comunales (hasta 9)
             let ccsHtml = '';
             if (c.consejos_comunales && Array.isArray(c.consejos_comunales)) {
                 ccsHtml = c.consejos_comunales.slice(0, 9).map((cc, i) => 
@@ -412,7 +394,7 @@
                      </div>`
                 ).join('');
             } else {
-                ccsHtml = `<p class="text-xs text-slate-500 italic">No hay consejos comunales registrados.</p>`;
+                ccsHtml = `<p class="text-xs text-slate-500 italic">Sin consejos comunales registrados.</p>`;
             }
 
             document.getElementById('contenido-ficha').innerHTML = `
@@ -426,10 +408,9 @@
                     <div class="flex justify-between"><span class="text-slate-400">Parroquia:</span> <span class="font-medium text-white">${c.parroquia || 'N/D'}</span></div>
                 </div>
 
-                <!-- ORGANIZACIÓN EJECUTORA Y PROYECTO -->
                 <div class="bg-slate-900 p-3 rounded-xl border border-slate-800 space-y-2 text-xs">
                     <div class="font-bold text-amber-400 flex items-center justify-between">
-                        <span>🏛️ Proyecto Carga Popular</span>
+                        <span>🏛️ Proyecto Popular Carga</span>
                         <span class="text-[10px] bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">${c.estatus_proyecto || 'Borrador'}</span>
                     </div>
                     <p class="text-white font-medium">${c.proyectos || 'Sin proyecto asignado'}</p>
@@ -440,7 +421,6 @@
                     </div>
                 </div>
 
-                <!-- CONSEJOS COMUNALES INTEGRANTES -->
                 <div class="bg-slate-900 p-3 rounded-xl border border-slate-800 space-y-2 text-xs">
                     <div class="font-bold text-indigo-300 flex justify-between items-center">
                         <span>👥 Consejos Comunales Integrantes</span>
@@ -454,7 +434,157 @@
             panel.classList.remove('translate-x-full');
         }
 
-        // MÓDULO EXCLUSIVO DE GESTIÓN DE USUARIOS (CREADORA SISTEMA)
+        // PROYECTOS EMBLEMÁTICOS
+        function filtrarProyectosEmblematicos() {
+            let emblemáticos = comunasData.filter(c => c.es_emblematico && String(c.consulta || "7") === String(cicloActual));
+            renderizarComunasEnMapa(emblemáticos);
+            
+            document.getElementById('titulo-panel-lateral').innerText = "Proyectos Emblemáticos Lara";
+            const panel = document.getElementById('ficha-comuna');
+
+            let htmlLista = emblemáticos.map(c => `
+                <div onclick="mostrarFichaComunaPorCodigo('${c.codigo}')" class="bg-slate-900 hover:bg-slate-800 p-3 rounded-xl border border-amber-500/30 cursor-pointer space-y-1">
+                    <div class="font-bold text-amber-300 text-xs">${c.nombre}</div>
+                    <div class="text-[11px] text-slate-300 font-medium">${c.proyectos}</div>
+                    <div class="text-[10px] text-slate-400">Municipio: ${c.municipio} | Estatus: <span class="text-emerald-400 font-semibold">${c.estatus_proyecto}</span></div>
+                </div>
+            `).join('');
+
+            document.getElementById('contenido-ficha').innerHTML = `
+                <div class="space-y-3">
+                    <div class="text-xs text-slate-300 bg-amber-500/10 border border-amber-500/20 p-2.5 rounded-lg">
+                        ⭐ Proyectos de alto impacto comunitario seleccionados en la Consulta Popular.
+                    </div>
+                    ${htmlLista || '<p class="text-xs text-slate-500">No hay proyectos emblemáticos marcados en este ciclo.</p>'}
+                </div>
+            `;
+            panel.classList.remove('translate-x-full');
+        }
+
+        // REPORTE EJECUTIVO CON IA INTERACTIVA
+        function abrirGeneradorReportesIA() {
+            document.getElementById('titulo-panel-lateral').innerText = "Generador de Reportes con IA";
+            const panel = document.getElementById('ficha-comuna');
+
+            document.getElementById('contenido-ficha').innerHTML = `
+                <div class="space-y-3 text-xs">
+                    <div class="bg-indigo-950/40 border border-indigo-500/30 p-3 rounded-xl text-indigo-200">
+                        <b>🤖 Asistente IA Táctico:</b> Escribe qué información específica deseas resumir del sistema (ej: "Proyectos de agua en Simón Planas", "Proyectos culminados").
+                    </div>
+
+                    <div>
+                        <label class="text-[10px] uppercase font-bold text-slate-400">¿Qué deseas saber o analizar?</label>
+                        <input type="text" id="prompt-ia" placeholder="Ej. Resumen de proyectos en ejecucion..." class="w-full bg-slate-900 border border-slate-800 rounded-lg p-2.5 text-white mt-1 text-xs outline-none focus:border-indigo-500">
+                    </div>
+
+                    <button onclick="generarReporteIA()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2.5 rounded-xl cursor-pointer">
+                        ✨ Generar Reporte con IA
+                    </button>
+
+                    <div id="resultado-reporte-ia" class="hidden space-y-2">
+                        <label class="text-[10px] uppercase font-bold text-slate-400">Reporte Generado:</label>
+                        <textarea id="texto-reporte-ia" readonly class="w-full h-48 bg-slate-900 border border-slate-800 rounded-xl p-3 font-mono text-[11px] text-slate-200 leading-relaxed outline-none"></textarea>
+                        <button onclick="navigator.clipboard.writeText(document.getElementById('texto-reporte-ia').value); alert('Reporte copiado');" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 py-2 rounded-lg text-xs cursor-pointer">📋 Copiar Reporte</button>
+                    </div>
+                </div>
+            `;
+            panel.classList.remove('translate-x-full');
+        }
+
+        function generarReporteIA() {
+            const prompt = document.getElementById('prompt-ia').value.trim().toLowerCase();
+            const resDiv = document.getElementById('resultado-reporte-ia');
+            const txtArea = document.getElementById('texto-reporte-ia');
+
+            let dataset = comunasData.filter(c => String(c.consulta || "7") === String(cicloActual));
+            if (prompt) {
+                dataset = dataset.filter(c => 
+                    (c.municipio && c.municipio.toLowerCase().includes(prompt)) ||
+                    (c.sector && c.sector.toLowerCase().includes(prompt)) ||
+                    (c.estatus_proyecto && c.estatus_proyecto.toLowerCase().includes(prompt)) ||
+                    (c.nombre && c.nombre.toLowerCase().includes(prompt))
+                );
+            }
+
+            let fecha = new Date().toLocaleDateString('es-VE');
+            let reporte = `==================================================
+  CENTRO TÁCTICO CFG LARA - REPORTE IA
+==================================================
+Fecha de Generación: ${fecha}
+Parámetro de Búsqueda: "${prompt || 'General'}"
+Consulta Popular: ${cicloActual}ma Edición
+Total Registros Identificados: ${dataset.length}
+--------------------------------------------------
+
+RESUMEN DE PROYECTOS:
+${dataset.map((c, i) => `${i + 1}. [${c.municipio}] ${c.nombre}
+   • Proyecto: ${c.proyectos}
+   • Sector: ${c.sector || 'General'} | Estatus: ${c.estatus_proyecto}
+   • OEP: ${c.organizacion_ejecutora || 'Consejo Comunal'}`).join('\n\n')}
+
+--------------------------------------------------
+DIAGNÓSTICO TÁCTICO:
+El ${Math.round((dataset.filter(d=>d.estatus_proyecto==='En Ejecución' || d.estatus_proyecto==='Culminado').length / (dataset.length||1))*100)}% de los proyectos priorizados se encuentran en fase activa de ejecución o finalización.
+==================================================`;
+
+            txtArea.value = reporte;
+            resDiv.classList.remove('hidden');
+        }
+
+        // DESGLOSE POR SECTOR DE INVERSIÓN
+        function abrirMatrizPreferencias() {
+            document.getElementById('titulo-panel-lateral').innerText = "Sector de Inversión (Matriz)";
+            const panel = document.getElementById('ficha-comuna');
+
+            let sectores = {};
+            let dataset = comunasData.filter(c => String(c.consulta || "7") === String(cicloActual));
+            
+            dataset.forEach(c => {
+                let s = c.sector || "General";
+                sectores[s] = (sectores[s] || 0) + 1;
+            });
+
+            let desglosesHtml = Object.keys(sectores).map(sec => `
+                <div onclick="filtrarPorSectorEspecifico('${sec}')" class="bg-slate-900 hover:bg-slate-800 p-3 rounded-xl border border-slate-800 flex justify-between items-center cursor-pointer">
+                    <span class="text-white font-medium text-xs">${sec}</span>
+                    <span class="text-xs bg-indigo-500/20 text-indigo-300 px-2 py-0.5 rounded font-bold">${sectores[sec]} Proyectos</span>
+                </div>
+            `).join('');
+
+            document.getElementById('contenido-ficha').innerHTML = `
+                <div class="space-y-4 text-xs">
+                    <div class="bg-slate-900 p-3 rounded-xl border border-slate-800">
+                        <div class="font-bold text-white mb-2">Distribución de Proyectos por Sector</div>
+                        <canvas id="chartSectores" width="300" height="180"></canvas>
+                    </div>
+
+                    <div class="space-y-2">
+                        <div class="font-bold text-slate-300">Seleccionar Sector para Desglose:</div>
+                        ${desglosesHtml}
+                    </div>
+                </div>
+            `;
+            panel.classList.remove('translate-x-full');
+
+            setTimeout(() => {
+                const ctx = document.getElementById('chartSectores').getContext('2d');
+                new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: Object.keys(sectores),
+                        datasets: [{ data: Object.values(sectores), backgroundColor: ['#6366f1', '#a855f7', '#10b981', '#f59e0b', '#38bdf8'] }]
+                    },
+                    options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { color: '#cbd5e1', font: { size: 10 } } } } }
+                });
+            }, 200);
+        }
+
+        function filtrarPorSectorEspecifico(sector) {
+            let filtrados = comunasData.filter(c => String(c.consulta || "7") === String(cicloActual) && (c.sector || "General") === sector);
+            renderizarComunasEnMapa(filtrados);
+        }
+
+        // MÓDULO CREADORA - USUARIOS
         function abrirGestionUsuarios() {
             if (!usuarioActual || !usuarioActual.esCreadora) return;
 
@@ -467,41 +597,36 @@
                         <div class="font-bold text-white">${u.usuario}</div>
                         <div class="text-[10px] text-slate-400">${u.rol}</div>
                     </div>
-                    ${u.esCreadora ? '<span class="text-[9px] bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded border border-purple-500/30">Creadora</span>' : '<span class="text-[9px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded">Acceso Estándar</span>'}
+                    ${u.esCreadora ? '<span class="text-[9px] bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded border border-purple-500/30">Creadora</span>' : '<span class="text-[9px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded">Estándar</span>'}
                  </div>`
             ).join('');
 
             document.getElementById('contenido-ficha').innerHTML = `
                 <div class="space-y-4 text-xs">
-                    <div class="bg-purple-950/40 border border-purple-500/30 p-3 rounded-xl text-purple-200">
-                        <b>👑 Módulo Privilegiado de la Creadora:</b>
-                        <p class="text-[11px] text-slate-300 mt-1">Registra nuevos usuarios autorizados para ingresar a la plataforma táctica.</p>
-                    </div>
-
                     <form onsubmit="crearNuevoUsuario(event)" class="bg-slate-900 p-3 rounded-xl border border-slate-800 space-y-3">
                         <div class="font-bold text-white">Crear Nuevo Usuario</div>
                         <div>
-                            <label class="text-[10px] text-slate-400 uppercase">Nombre de Usuario</label>
-                            <input type="text" id="nuevo-user" required class="w-full bg-slate-950 border border-slate-800 rounded px-2.5 py-1.5 text-white text-xs mt-1">
+                            <label class="text-[10px] text-slate-400 uppercase">Usuario</label>
+                            <input type="text" id="nuevo-user" required class="w-full bg-slate-950 border border-slate-800 rounded px-2.5 py-1.5 text-white text-xs mt-1 outline-none">
                         </div>
                         <div>
                             <label class="text-[10px] text-slate-400 uppercase">Contraseña</label>
-                            <input type="password" id="nuevo-pass" required class="w-full bg-slate-950 border border-slate-800 rounded px-2.5 py-1.5 text-white text-xs mt-1">
+                            <input type="password" id="nuevo-pass" required class="w-full bg-slate-950 border border-slate-800 rounded px-2.5 py-1.5 text-white text-xs mt-1 outline-none">
                         </div>
                         <div>
-                            <label class="text-[10px] text-slate-400 uppercase">Rol del Usuario</label>
-                            <select id="nuevo-rol" class="w-full bg-slate-950 border border-slate-800 rounded px-2.5 py-1.5 text-white text-xs mt-1">
+                            <label class="text-[10px] text-slate-400 uppercase">Rol</label>
+                            <select id="nuevo-rol" class="w-full bg-slate-950 border border-slate-800 rounded px-2.5 py-1.5 text-white text-xs mt-1 outline-none">
                                 <option value="Analista Táctico">Analista Táctico</option>
                                 <option value="Administrador">Administrador</option>
                             </select>
                         </div>
                         <button type="submit" class="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-2 rounded-lg cursor-pointer">
-                            ➕ Registrar Usuario Privilegiado
+                            ➕ Registrar Usuario
                         </button>
                     </form>
 
                     <div class="space-y-2">
-                        <div class="font-bold text-slate-300">Usuarios Registrados</div>
+                        <div class="font-bold text-slate-300">Usuarios Activos</div>
                         ${listaHtml}
                     </div>
                 </div>
@@ -527,50 +652,9 @@
             renderizarComunasEnMapa(datosFiltrados);
         }
 
-        function abrirMatrizPreferencias() {
-            document.getElementById('titulo-panel-lateral').innerText = "Matriz de Inversión";
-            const panel = document.getElementById('ficha-comuna');
-            document.getElementById('contenido-ficha').innerHTML = `
-                <div class="space-y-4 text-xs">
-                    <div class="bg-slate-900 p-3 rounded-xl border border-slate-800">
-                        <div class="font-bold text-white mb-2">Demanda Prioritaria por Sector</div>
-                        <canvas id="chartSectores" width="300" height="200"></canvas>
-                    </div>
-                </div>
-            `;
-            panel.classList.remove('translate-x-full');
-
-            setTimeout(() => {
-                const ctx = document.getElementById('chartSectores').getContext('2d');
-                new Chart(ctx, {
-                    type: 'doughnut',
-                    data: {
-                        labels: ['Agua Potable', 'Aguas Servidas', 'Vialidad', 'Electricidad'],
-                        datasets: [{ data: [40, 25, 20, 15], backgroundColor: ['#6366f1', '#a855f7', '#10b981', '#f59e0b'] }]
-                    },
-                    options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { color: '#cbd5e1' } } } }
-                });
-            }, 200);
-        }
-
-        function abrirGeneradorReportes() {
-            document.getElementById('titulo-panel-lateral').innerText = "Reporte Ejecutivo";
-            const panel = document.getElementById('ficha-comuna');
-            let dataset = comunasData.filter(c => String(c.consulta || "7") === String(cicloActual));
-            
-            let texto = `REPORTE TÁCTICO - CONSULTA POPULAR ${cicloActual}
---------------------------------------------------
-Total Proyectos Monitoreados: ${dataset.length}
-Sectores de Mayor Impacto: Agua Potable, Vialidad
-Estado de Carga: Verificado por Centro Táctico CFG Lara`;
-
-            document.getElementById('contenido-ficha').innerHTML = `
-                <div class="space-y-3 text-xs">
-                    <textarea readonly class="w-full h-40 bg-slate-950 border border-slate-800 rounded p-2 font-mono text-slate-300 text-[11px]">${texto}</textarea>
-                    <button onclick="navigator.clipboard.writeText(\`${texto}\`); alert('Reporte copiado');" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-2 rounded-xl">📋 Copiar Reporte</button>
-                </div>
-            `;
-            panel.classList.remove('translate-x-full');
+        function restablecerMapaCompleto() {
+            filtrarPorCicloActivo();
+            if (map) map.setView([10.0678, -69.3474], 9);
         }
 
         function cerrarFicha() { document.getElementById('ficha-comuna').classList.add('translate-x-full'); }
