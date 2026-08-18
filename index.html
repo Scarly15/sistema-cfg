@@ -95,23 +95,24 @@
 
                 <hr class="border-slate-800 my-1">
 
+                <!-- ESTADÍSTICAS CLICKABLES -->
                 <div class="bg-slate-950/60 border border-slate-800 rounded-xl p-3 space-y-3">
                     <div class="flex justify-between items-center text-xs font-semibold text-slate-300">
                         <span>ESTADÍSTICAS LARA</span>
                         <span id="total-comunas-badge" class="text-indigo-400">0 Comunas</span>
                     </div>
-                    <div>
+                    <div onclick="mostrarListaFiltro('aldia')" class="cursor-pointer hover:bg-slate-900/80 p-1.5 rounded transition-all">
                         <div class="flex justify-between text-[11px] text-slate-400 mb-1">
-                            <span>Rendición de Cuentas al Día</span>
+                            <span>Rendición al Día (Ver lista)</span>
                             <span id="porcentaje-rendicion" class="text-emerald-400 font-bold">0%</span>
                         </div>
                         <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
                             <div id="barra-rendicion" class="bg-emerald-500 h-full transition-all duration-500" style="width: 0%"></div>
                         </div>
                     </div>
-                    <div>
+                    <div onclick="mostrarListaFiltro('vigentes')" class="cursor-pointer hover:bg-slate-900/80 p-1.5 rounded transition-all">
                         <div class="flex justify-between text-[11px] text-slate-400 mb-1">
-                            <span>Consejos Comunales Vigentes</span>
+                            <span>CC Vigentes (Ver lista)</span>
                             <span id="porcentaje-cc" class="text-indigo-400 font-bold">0%</span>
                         </div>
                         <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
@@ -130,11 +131,17 @@
                     </button>
                     <button onclick="filtrarAlerta('vencidos')" class="bg-amber-500/10 hover:bg-amber-500/25 border border-amber-500/30 text-amber-300 p-2.5 rounded-xl text-left text-xs transition-all">
                         <div class="font-bold">⏳ CC Vencidos</div>
-                        <div class="text-[10px] text-slate-400">Requieren renovación</div>
+                        <div class="text-[10px] text-slate-400">Renovación pendiente</div>
                     </button>
                 </div>
+                
+                <!-- NUEVO BOTÓN ASISTENTE IA -->
+                <button onclick="abrirResumenIA()" class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-medium py-2.5 rounded-xl text-xs shadow-lg transition-all flex items-center justify-center space-x-2">
+                    <span>✨ Resumen Ejecutivo con IA</span>
+                </button>
+
                 <button onclick="cargarDatosSupabase()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 py-2 rounded-lg text-xs transition-colors">
-                    🔄 Recargar Datos
+                    🔄 Restablecer Vista Completa
                 </button>
             </aside>
 
@@ -142,9 +149,10 @@
                 <div id="map"></div>
             </main>
 
-            <div id="ficha-comuna" class="absolute right-0 top-0 h-full w-96 bg-slate-900/95 border-l border-slate-800 shadow-2xl z-30 transform translate-x-full transition-transform duration-300 flex flex-col p-6 overflow-y-auto">
+            <!-- FICHA COMUNAL / PANEL LATERAL DE DETALLES -->
+            <div id="ficha-comuna" class="absolute right-0 top-0 h-full w-96 bg-slate-900/98 border-l border-slate-800 shadow-2xl z-30 transform translate-x-full transition-transform duration-300 flex flex-col p-6 overflow-y-auto">
                 <div class="flex items-center justify-between pb-4 border-b border-slate-800">
-                    <span class="text-xs font-semibold uppercase tracking-wider text-indigo-400">Ficha Técnica Comunal</span>
+                    <span id="titulo-panel-lateral" class="text-xs font-semibold uppercase tracking-wider text-indigo-400">Ficha Técnica Comunal</span>
                     <button onclick="cerrarFicha()" class="text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 w-8 h-8 rounded-full flex items-center justify-center transition-colors">✕</button>
                 </div>
                 <div id="contenido-ficha" class="py-4 space-y-4 text-sm text-slate-200"></div>
@@ -192,9 +200,9 @@
                 municipio: "Palavecino", 
                 parroquia: "Cabudare",
                 lat: 10.2350, lng: -69.2550, 
-                cc_vigentes: 5, cc_vencidos: 6,
+                cc_vigentes: 2, cc_vencidos: 7,
                 rendicion_cuentas: "Moroso",
-                proyectos: "Sustitución de colectores"
+                proyectos: "Sustitución de colectores y agua potable"
             }
         ];
 
@@ -276,7 +284,7 @@
             marcadoresLayer.clearLayers();
             data.forEach(c => {
                 if (c.lat && c.lng) {
-                    let markerColor = (c.cc_vencidos > c.cc_vigentes || (c.rendicion_cuentas && c.rendicion_cuentas.toLowerCase().includes('moroso'))) ? '#ef4444' : '#6366f1';
+                    let markerColor = (Number(c.cc_vencidos) > Number(c.cc_vigentes) || (c.rendicion_cuentas && c.rendicion_cuentas.toLowerCase().includes('moroso'))) ? '#ef4444' : '#6366f1';
                     
                     let customIcon = L.divIcon({
                         className: 'custom-pin',
@@ -284,9 +292,13 @@
                         iconSize: [14, 14]
                     });
 
-                    let marker = L.marker([c.lat, c.lng], { icon: customIcon })
-                        .bindPopup(`<div style="font-family:sans-serif;"><b style="color:#0f172a">${c.nombre}</b><br><span style="font-size:11px; color:#475569">Municipio: ${c.municipio || 'N/D'}</span></div>`)
-                        .on('click', () => mostrarFichaComuna(c));
+                    let marker = L.marker([c.lat, c.lng], { icon: customIcon });
+                    
+                    // Asegurar que al hacer clic abra correctamente la ficha y la vista
+                    marker.on('click', () => {
+                        mostrarFichaComuna(c);
+                        map.setView([c.lat, c.lng], 13);
+                    });
                     
                     marcadoresLayer.addLayer(marker);
                 }
@@ -294,6 +306,7 @@
         }
 
         function mostrarFichaComuna(c) {
+            document.getElementById('titulo-panel-lateral').innerText = "Ficha Técnica Comunal";
             const panel = document.getElementById('ficha-comuna');
             document.getElementById('contenido-ficha').innerHTML = `
                 <div>
@@ -316,7 +329,105 @@
                 </div>
             `;
             panel.classList.remove('translate-x-full');
-            if(c.lat && c.lng) map.setView([c.lat, c.lng], 13);
+        }
+
+        function mostrarListaFiltro(tipo) {
+            let lista = [];
+            let titulo = "";
+            if (tipo === 'aldia') {
+                lista = comunasData.filter(c => !c.rendicion_cuentas || c.rendicion_cuentas.toLowerCase().includes('día'));
+                titulo = "Comunas con Rendición al Día";
+            } else if (tipo === 'vigentes') {
+                lista = comunasData.filter(c => (Number(c.cc_vigentes) || 0) >= (Number(c.cc_vencidos) || 0));
+                titulo = "Comunas con Mayoría CC Vigentes";
+            }
+            renderizarListaEnPanel(lista, titulo);
+        }
+
+        function filtrarAlerta(tipo) {
+            let lista = [];
+            let titulo = "";
+            if (tipo === 'morosos') {
+                lista = comunasData.filter(c => c.rendicion_cuentas && c.rendicion_cuentas.toLowerCase().includes('moroso'));
+                titulo = "Alerta: Comunas Morosas";
+            } else if (tipo === 'vencidos') {
+                lista = comunasData.filter(c => (Number(c.cc_vencidos) || 0) > (Number(c.cc_vigentes) || 0));
+                titulo = "Alerta: CC Vencidos";
+            }
+            renderizarListaEnPanel(lista, titulo);
+        }
+
+        function renderizarListaEnPanel(lista, titulo) {
+            document.getElementById('titulo-panel-lateral').innerText = titulo;
+            const panel = document.getElementById('ficha-comuna');
+            
+            let html = `<p class="text-xs text-slate-400 mb-3">Se encontraron <b>${lista.length}</b> registros bajo este criterio:</p><div class="space-y-2">`;
+            if (lista.length === 0) {
+                html += `<p class="text-xs text-slate-500">No hay comunas en este grupo.</p>`;
+            } else {
+                lista.forEach(c => {
+                    html += `
+                        <div onclick='seleccionarComunaPorCodigo("${c.codigo}")' class="bg-slate-950/60 border border-slate-800 hover:border-indigo-500 p-3 rounded-xl cursor-pointer transition-all">
+                            <div class="font-bold text-white text-xs">${c.nombre}</div>
+                            <div class="text-[11px] text-slate-400">Mun: ${c.municipio || 'N/D'} | Vigentes: ${c.cc_vigentes || 0}</div>
+                        </div>
+                    `;
+                });
+            }
+            html += `</div>`;
+            document.getElementById('contenido-ficha').innerHTML = html;
+            panel.classList.remove('translate-x-full');
+        }
+
+        function seleccionarComunaPorCodigo(codigo) {
+            let comuna = comunasData.find(c => c.codigo === codigo);
+            if (comuna) {
+                mostrarFichaComuna(comuna);
+                if (comuna.lat && comuna.lng) map.setView([comuna.lat, comuna.lng], 13);
+            }
+        }
+
+        function abrirResumenIA() {
+            document.getElementById('titulo-panel-lateral').innerText = "Resumen Ejecutivo con IA";
+            const panel = document.getElementById('ficha-comuna');
+            
+            let total = comunasData.length;
+            let morosos = comunasData.filter(c => c.rendicion_cuentas && c.rendicion_cuentas.toLowerCase().includes('moroso')).length;
+            
+            document.getElementById('contenido-ficha').innerHTML = `
+                <div class="space-y-3 text-xs">
+                    <div class="bg-indigo-950/40 border border-indigo-500/30 p-3 rounded-xl text-indigo-200">
+                        <b>🤖 Análisis Inteligente CFG:</b> El estado actual de Lara cuenta con ${total} comunas monitoreadas bajo directrices estratégicas. Se detectan ${morosos} focos de atención prioritaria por retraso en rendición.
+                    </div>
+                    <div class="bg-slate-950/40 p-3 rounded-xl border border-slate-800 space-y-2">
+                        <div class="font-bold text-white">Filtro Rápido por Sector / Proyecto:</div>
+                        <input type="text" id="busqueda-sector" oninput="filtrarPorSector(this.value)" placeholder="Ej. Agua, vialidad, salud..." class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-xs text-white">
+                    </div>
+                    <div id="resultado-sectores" class="space-y-2 max-h-60 overflow-y-auto">
+                        <p class="text-slate-500 text-[11px]">Escriba una palabra clave arriba para listar proyectos por sector.</p>
+                    </div>
+                </div>
+            `;
+            panel.classList.remove('translate-x-full');
+        }
+
+        function filtrarPorSector(keyword) {
+            const contenedor = document.getElementById('resultado-sectores');
+            if (!keyword) {
+                contenedor.innerHTML = `<p class="text-slate-500 text-[11px]">Escriba una palabra clave arriba para listar proyectos por sector.</p>`;
+                return;
+            }
+            let matches = comunasData.filter(c => c.proyectos && c.proyectos.toLowerCase().includes(keyword.toLowerCase()));
+            if (matches.length === 0) {
+                contenedor.innerHTML = `<p class="text-xs text-red-400">No se encontraron proyectos asociados a "${keyword}".</p>`;
+            } else {
+                contenedor.innerHTML = matches.map(c => `
+                    <div onclick='seleccionarComunaPorCodigo("${c.codigo}")' class="bg-slate-900 p-2 rounded border border-slate-800 cursor-pointer hover:border-indigo-500">
+                        <div class="font-bold text-white text-[11px]">${c.nombre}</div>
+                        <div class="text-[10px] text-indigo-300">${c.proyectos}</div>
+                    </div>
+                `).join('');
+            }
         }
 
         function cerrarFicha() { document.getElementById('ficha-comuna').classList.add('translate-x-full'); }
@@ -327,32 +438,16 @@
             } 
         }
 
-        function filtrarAlerta(tipo) {
-            let filtradas = [];
-            if (tipo === 'morosos') {
-                filtradas = comunasData.filter(c => c.rendicion_cuentas && c.rendicion_cuentas.toLowerCase().includes('moroso'));
-            } else if (tipo === 'vencidos') {
-                filtradas = comunasData.filter(c => (Number(c.cc_vencidos) || 0) > (Number(c.cc_vigentes) || 0));
-            }
-            renderizarComunasEnMapa(filtradas);
-            if(filtradas.length === 0) alert('No se encontraron comunas bajo este filtro.');
-        }
-
         function filtrarComunas(texto) {
             const contenedor = document.getElementById('resultados-busqueda');
             if (!texto) { contenedor.classList.add('hidden'); return; }
             let coincidencias = comunasData.filter(c => c.nombre.toLowerCase().includes(texto.toLowerCase()));
             if (coincidencias.length > 0) {
-                contenedor.innerHTML = coincidencias.map(c => `<div onclick="mostrarFichaComunaByCode('${c.codigo}')" class="p-2.5 hover:bg-slate-800 cursor-pointer">${c.nombre}</div>`).join('');
+                contenedor.innerHTML = coincidencias.map(c => `<div onclick="seleccionarComunaPorCodigo('${c.codigo}')" class="p-2.5 hover:bg-slate-800 cursor-pointer">${c.nombre}</div>`).join('');
                 contenedor.classList.remove('hidden');
             } else {
                 contenedor.classList.add('hidden');
             }
-        }
-
-        function mostrarFichaComunaByCode(codigo) {
-            let comuna = comunasData.find(c => c.codigo === codigo);
-            if (comuna) { mostrarFichaComuna(comuna); document.getElementById('resultados-busqueda').classList.add('hidden'); }
         }
     </script>
 </body>
