@@ -85,50 +85,50 @@
                     </select>
                 </div>
 
-                <!-- PIPELINE Y CONTADORES -->
+                <!-- PIPELINE DE BOTONES DE ESTATUS -->
                 <div class="bg-slate-950 border border-slate-800 rounded-xl p-3 space-y-2">
                     <div class="flex justify-between items-center text-xs font-bold text-slate-200">
                         <span>ESTATUS DE PROYECTOS</span>
-                        <span id="total-proyectos-cargados" class="text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded">0</span>
+                        <span id="total-proyectos-cargados" class="text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded">0 Proyectos</span>
                     </div>
                     <div class="grid grid-cols-2 gap-1.5 text-[11px]">
-                        <button onclick="filtrarPorEstatusProyecto('Borrador')" class="bg-slate-900 hover:bg-slate-800 border border-slate-800 p-2 rounded-lg text-left flex justify-between">
+                        <button onclick="filtrarPorEstatusProyecto('Borrador')" class="bg-slate-900 hover:bg-slate-800 border border-slate-800 p-2 rounded-lg text-left flex justify-between transition-all">
                             <span class="text-slate-400">📝 Borrador</span>
                             <span id="cant-borrador" class="font-bold text-slate-200">0</span>
                         </button>
-                        <button onclick="filtrarPorEstatusProyecto('Pre-evaluación')" class="bg-slate-900 hover:bg-slate-800 border border-slate-800 p-2 rounded-lg text-left flex justify-between">
+                        <button onclick="filtrarPorEstatusProyecto('Pre-evaluación')" class="bg-slate-900 hover:bg-slate-800 border border-slate-800 p-2 rounded-lg text-left flex justify-between transition-all">
                             <span class="text-sky-400">🔍 Pre-eval.</span>
                             <span id="cant-preeval" class="font-bold text-sky-300">0</span>
                         </button>
-                        <button onclick="filtrarPorEstatusProyecto('En Evaluación')" class="bg-slate-900 hover:bg-slate-800 border border-slate-800 p-2 rounded-lg text-left flex justify-between">
+                        <button onclick="filtrarPorEstatusProyecto('En Evaluación')" class="bg-slate-900 hover:bg-slate-800 border border-slate-800 p-2 rounded-lg text-left flex justify-between transition-all">
                             <span class="text-purple-400">📋 Evaluac.</span>
                             <span id="cant-eval" class="font-bold text-purple-300">0</span>
                         </button>
-                        <button onclick="filtrarPorEstatusProyecto('En Ejecución')" class="bg-slate-900 hover:bg-slate-800 border border-slate-800 p-2 rounded-lg text-left flex justify-between">
+                        <button onclick="filtrarPorEstatusProyecto('En Ejecución')" class="bg-slate-900 hover:bg-slate-800 border border-slate-800 p-2 rounded-lg text-left flex justify-between transition-all">
                             <span class="text-amber-400">⚡ Ejecución</span>
                             <span id="cant-ejec" class="font-bold text-amber-300">0</span>
                         </button>
                     </div>
-                    <button onclick="filtrarPorEstatusProyecto('Culminado')" class="w-full bg-emerald-950/60 border border-emerald-500/30 p-2 rounded-lg text-xs flex justify-between text-emerald-300 font-semibold">
+                    <button onclick="filtrarPorEstatusProyecto('Culminado')" class="w-full bg-emerald-950/60 hover:bg-emerald-900/60 border border-emerald-500/30 p-2 rounded-lg text-xs flex justify-between text-emerald-300 font-semibold transition-all">
                         <span>🏁 Culminados / Verificados</span>
                         <span id="cant-culminado" class="font-bold bg-emerald-500/20 px-2 py-0.5 rounded">0</span>
                     </button>
                 </div>
 
-                <!-- MÓDULOS DEL SISTEMA -->
+                <!-- MÓDULOS -->
                 <div class="space-y-2">
-                    <button onclick="abrirFichaEstadistica()" class="w-full bg-slate-950 border border-slate-800 text-blue-300 font-medium py-2 px-3 rounded-xl text-xs flex justify-between">
+                    <button onclick="abrirFichaEstadistica()" class="w-full bg-slate-950 hover:bg-slate-800 border border-slate-800 text-blue-300 font-medium py-2 px-3 rounded-xl text-xs flex justify-between items-center transition-all">
                         <span>📈 Resumen Estadístico (Estadal/Municipal)</span>
                     </button>
-                    <button onclick="abrirMatrizPreferencias()" class="w-full bg-slate-950 border border-slate-800 text-emerald-300 font-medium py-2 px-3 rounded-xl text-xs flex justify-between">
+                    <button onclick="abrirMatrizPreferencias()" class="w-full bg-slate-950 hover:bg-slate-800 border border-slate-800 text-emerald-300 font-medium py-2 px-3 rounded-xl text-xs flex justify-between items-center transition-all">
                         <span>📊 Sector de Inversión (Matriz e Info)</span>
                     </button>
-                    <button onclick="abrirGeneradorReportesIA()" class="w-full bg-slate-950 border border-slate-800 text-indigo-300 font-medium py-2 px-3 rounded-xl text-xs flex justify-between">
-                        <span>🤖 Reporte Ejecutivo e Alertas IA</span>
+                    <button onclick="abrirGeneradorReportesIA()" class="w-full bg-slate-950 hover:bg-slate-800 border border-slate-800 text-indigo-300 font-medium py-2 px-3 rounded-xl text-xs flex justify-between items-center transition-all">
+                        <span>🤖 Reporte Ejecutivo y Consultas IA</span>
                     </button>
                 </div>
 
-                <button onclick="restablecerMapaCompleto()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 py-2 rounded-lg text-xs">🔄 Restablecer Mapa</button>
+                <button onclick="restablecerMapaCompleto()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 py-2 rounded-lg text-xs transition-all">🔄 Restablecer Mapa</button>
             </aside>
 
             <main class="flex-1 relative">
@@ -139,7 +139,7 @@
             <div id="ficha-comuna" class="absolute right-0 top-0 h-full w-[460px] bg-slate-950 border-l border-slate-800 shadow-2xl z-50 transform translate-x-full transition-transform duration-300 flex flex-col p-6 overflow-y-auto">
                 <div class="flex items-center justify-between pb-4 border-b border-slate-800">
                     <span id="titulo-panel-lateral" class="text-xs font-semibold uppercase tracking-wider text-indigo-400">Ficha Técnica Comunal</span>
-                    <button onclick="cerrarFicha()" class="text-slate-400 hover:text-white bg-slate-900 w-8 h-8 rounded-full border border-slate-700">✕</button>
+                    <button onclick="cerrarFicha()" class="text-slate-400 hover:text-white bg-slate-900 w-8 h-8 rounded-full border border-slate-700 flex items-center justify-center">✕</button>
                 </div>
                 <div id="contenido-ficha" class="py-4 space-y-4 text-sm text-slate-100"></div>
             </div>
@@ -171,7 +171,13 @@
             "Simón Planas": { lat: 9.8078, lng: -69.0528, zoom: 12 }
         };
 
-        // DATOS BASE CON SEGUIMIENTO DE VOCERÍAS, AVANCE FÍSICO/FINANCIERO Y NUDOS CRÍTICOS
+        const parroquiasPorMunicipio = {
+            "Iribarren": ["Concepción", "Catedral", "Santa Rosa", "Unión", "El Cují", "Tamaca", "Juan de Villegas", "Aguedo Felipe Alvarado", "Buena Vista", "Juares"],
+            "Palavecino": ["Cabudare", "José Gregorio Bastidas", "Agua Viva"],
+            "Jiménez": ["Quíbor", "Diego de Lozada", "José Bernardo Dorante", "Paraíso de San José", "San Miguel", "Cuara", "Paso Real"],
+            "Simón Planas": ["Sarare", "Buría", "Gustavo Vegas León"]
+        };
+
         const comunasRespaldo = [
             { 
                 id: "COM-001",
@@ -187,10 +193,10 @@
                 ],
                 organizacion_ejecutora: "Consejo Comunal La Batalla",
                 proyectos: "Sustitución Colectores de Aguas Servidas",
-                estatus_proyecto: "En Ejecución",
-                ejecucion_fisica: 65,
-                ejecucion_financiera: 80,
-                nudo_critico: "Requerimiento de maquinaria pesada para excavación profunda.",
+                estatus_proyecto: "Borrador",
+                ejecucion_fisica: 0,
+                ejecucion_financiera: 0,
+                nudo_critico: "Sin reporte de nudos críticos.",
                 sector: "Aguas Servidas",
                 consulta: "7"
             },
@@ -212,6 +218,23 @@
                 ejecucion_financiera: 100,
                 nudo_critico: "Ninguno. Obra concluida de forma satisfactoria.",
                 sector: "Agua Potable",
+                consulta: "7"
+            },
+            { 
+                id: "COM-003",
+                codigo: "COM-003",
+                nombre: "Comuna Ataroa", 
+                municipio: "Iribarren", 
+                parroquia: "Catedral",
+                lat: 10.0710, lng: -69.3200, 
+                consejos_comunales: [{ nombre: "CC Bararida", voceria_estatus: "Vigente" }],
+                organizacion_ejecutora: "Consejo Comunal Bararida",
+                proyectos: "Alumbrado Público y Transformadores Electrónicos",
+                estatus_proyecto: "En Ejecución",
+                ejecucion_fisica: 40,
+                ejecucion_financiera: 50,
+                nudo_critico: "Falta de transformador de 50KVA para el sector 2.",
+                sector: "Electricidad",
                 consulta: "7"
             }
         ];
@@ -256,6 +279,7 @@
                 comunasData = data.map(item => ({
                     ...item,
                     municipio: typeof item.municipio === 'number' ? (municipiosMap[item.municipio] || `Municipio ${item.municipio}`) : (item.municipio || "Iribarren"),
+                    parroquia: item.parroquia || "Concepción",
                     estatus_proyecto: item.estatus_proyecto || item.estatus || "Borrador",
                     ejecucion_fisica: item.ejecucion_fisica || 0,
                     ejecucion_financiera: item.ejecucion_financiera || 0,
@@ -298,14 +322,50 @@
                     });
 
                     let m = L.marker([c.lat, c.lng], { icon: icon });
-                    m.bindPopup(`<b>${c.nombre}</b><br>Municipio: ${c.municipio}`);
+                    m.bindPopup(`<b>${c.nombre}</b><br>Municipio: ${c.municipio}<br>Estatus: ${c.estatus_proyecto}`);
                     m.on('click', () => { mostrarFichaComuna(c); map.setView([c.lat, c.lng], 13); });
                     marcadoresLayer.addLayer(m);
                 }
             });
         }
 
-        // FICHA TÉCNICA CON DETALLE FÍSICO, FINANCIERO Y VOCERÍAS
+        // ACCIÓN BOTONES DE ESTATUS DE PROYECTO
+        function filtrarPorEstatusProyecto(est) {
+            let dataset = comunasData.filter(c => String(c.consulta || "7") === String(cicloActual) && c.estatus_proyecto === est);
+            renderizarMapa(dataset);
+
+            document.getElementById('titulo-panel-lateral').innerText = `Proyectos: ${est}`;
+            const panel = document.getElementById('ficha-comuna');
+
+            let htmlProyectos = dataset.map(p => `
+                <div onclick="mostrarFichaComuna(comunasData.find(x=>x.id==='${p.id}'))" class="bg-slate-900 p-3 rounded-xl border border-slate-800 space-y-1 cursor-pointer hover:border-indigo-500 transition-all">
+                    <div class="flex justify-between items-center">
+                        <span class="font-bold text-white text-xs">${p.nombre}</span>
+                        <span class="text-[10px] text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded">${p.municipio}</span>
+                    </div>
+                    <p class="text-xs text-slate-300 font-medium">${p.proyectos || 'Sin nombre de proyecto'}</p>
+                    <div class="flex justify-between text-[10px] text-slate-400 pt-1">
+                        <span>Físico: <b class="text-emerald-400">${p.ejecucion_fisica}%</b></span>
+                        <span>Financiero: <b class="text-blue-400">${p.ejecucion_financiera}%</b></span>
+                    </div>
+                </div>
+            `).join('');
+
+            document.getElementById('contenido-ficha').innerHTML = `
+                <div class="space-y-3">
+                    <div class="bg-indigo-950/40 border border-indigo-500/30 p-3 rounded-xl flex justify-between items-center">
+                        <span class="text-xs font-bold text-indigo-300">Total en ${est}:</span>
+                        <span class="text-sm font-bold text-white bg-indigo-600 px-2.5 py-0.5 rounded-lg">${dataset.length}</span>
+                    </div>
+                    <div class="space-y-2 max-h-[calc(100vh-180px)] overflow-y-auto">
+                        ${htmlProyectos || '<p class="text-xs text-slate-500 italic p-2">No existen proyectos registrados en este estatus.</p>'}
+                    </div>
+                </div>
+            `;
+            panel.classList.remove('translate-x-full');
+        }
+
+        // FICHA TÉCNICA DETALLADA
         function mostrarFichaComuna(c) {
             document.getElementById('titulo-panel-lateral').innerText = "Ficha Técnica Comunal";
             const panel = document.getElementById('ficha-comuna');
@@ -317,9 +377,7 @@
                 let badgeCol = voceria === 'Vigente' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-red-500/20 text-red-400';
                 
                 return `<div class="bg-slate-900 p-2 rounded border border-slate-800 text-xs flex justify-between items-center">
-                    <div>
-                        <span class="text-white font-medium">${i+1}. ${nombreCC}</span>
-                    </div>
+                    <div><span class="text-white font-medium">${i+1}. ${nombreCC}</span></div>
                     <span class="text-[9px] ${badgeCol} px-2 py-0.5 rounded font-bold">${voceria}</span>
                 </div>`;
             }).join('');
@@ -342,7 +400,6 @@
                     </div>
                     <p class="text-white font-medium">${c.proyectos || 'Sin proyecto asignado'}</p>
                     
-                    <!-- AVANCES FÍSICO Y FINANCIERO -->
                     <div class="pt-2 space-y-2 border-t border-slate-800">
                         <div>
                             <div class="flex justify-between text-[10px] mb-1">
@@ -364,14 +421,12 @@
                         </div>
                     </div>
 
-                    <!-- NUDO CRÍTICO -->
                     <div class="pt-2 border-t border-slate-800">
                         <span class="text-[10px] text-red-400 font-bold uppercase block">⚠️ Nudo Crítico / Observación:</span>
                         <p class="text-[11px] text-slate-300 italic">${c.nudo_critico}</p>
                     </div>
                 </div>
 
-                <!-- CONSEJOS COMUNALES Y EDICIÓN -->
                 <div class="bg-slate-900 p-3 rounded-xl border border-slate-800 space-y-2 text-xs">
                     <div class="flex justify-between items-center">
                         <span class="font-bold text-indigo-300">👥 Consejos Comunales (${ccs.length}/9)</span>
@@ -383,7 +438,195 @@
             panel.classList.remove('translate-x-full');
         }
 
-        // MÓDULO PARA EDITAR CONSEJOS COMUNALES Y VOCERÍAS
+        // RESUMEN ESTADÍSTICO INTERACTIVO POR NIVELES
+        function abrirFichaEstadistica() {
+            document.getElementById('titulo-panel-lateral').innerText = "Ficha Estadística Interactiva";
+            const panel = document.getElementById('ficha-comuna');
+
+            let municipiosOptions = Object.keys(municipiosCoordenadas).map(m => `<option value="${m}">${m}</option>`).join('');
+
+            document.getElementById('contenido-ficha').innerHTML = `
+                <div class="space-y-3 text-xs">
+                    <div class="bg-slate-900 p-3 rounded-xl border border-slate-800 space-y-2">
+                        <div class="font-bold text-indigo-300 uppercase text-[10px]">Filtro Territorial:</div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="text-[10px] text-slate-400">Municipio</label>
+                                <select id="stat-municipio" onchange="actualizarParroquiasStat(); calcularEstadisticasFiltradas();" class="w-full bg-slate-950 border border-slate-800 rounded p-1.5 text-xs text-white">
+                                    <option value="TODOS">Todo el Estado</option>
+                                    ${municipiosOptions}
+                                </select>
+                            </div>
+                            <div>
+                                <label class="text-[10px] text-slate-400">Parroquia</label>
+                                <select id="stat-parroquia" onchange="calcularEstadisticasFiltradas();" class="w-full bg-slate-950 border border-slate-800 rounded p-1.5 text-xs text-white">
+                                    <option value="TODOS">Todas las Parroquias</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="contenedor-tarjetas-stats" class="grid grid-cols-2 gap-2 text-center"></div>
+
+                    <div class="border-t border-slate-800 pt-3">
+                        <div id="titulo-desglose-stat" class="font-bold text-indigo-300 mb-2">Proyectos Seleccionados:</div>
+                        <div id="lista-desglose-stat" class="space-y-2 max-h-64 overflow-y-auto"></div>
+                    </div>
+                </div>
+            `;
+            panel.classList.remove('translate-x-full');
+            calcularEstadisticasFiltradas();
+        }
+
+        function actualizarParroquiasStat() {
+            let mun = document.getElementById('stat-municipio').value;
+            let comboP = document.getElementById('stat-parroquia');
+            comboP.innerHTML = '<option value="TODOS">Todas las Parroquias</option>';
+
+            if (mun !== 'TODOS' && parroquiasPorMunicipio[mun]) {
+                parroquiasPorMunicipio[mun].forEach(p => {
+                    comboP.innerHTML += `<option value="${p}">${p}</option>`;
+                });
+            }
+        }
+
+        function calcularEstadisticasFiltradas() {
+            let mun = document.getElementById('stat-municipio').value;
+            let par = document.getElementById('stat-parroquia').value;
+
+            let dataset = comunasData.filter(c => String(c.consulta || "7") === String(cicloActual));
+
+            if (mun !== 'TODOS') dataset = dataset.filter(c => c.municipio === mun);
+            if (par !== 'TODOS') dataset = dataset.filter(c => c.parroquia === par);
+
+            let total = dataset.length;
+            let ejec = dataset.filter(d => d.estatus_proyecto === 'En Ejecución').length;
+            let culm = dataset.filter(d => d.estatus_proyecto === 'Culminado').length;
+            let nudos = dataset.filter(d => d.nudo_critico && !d.nudo_critico.includes("Sin reporte")).length;
+
+            document.getElementById('contenedor-tarjetas-stats').innerHTML = `
+                <div onclick="mostrarDesgloseStat('TODOS')" class="bg-slate-900 hover:bg-slate-800 border border-slate-800 p-3 rounded-xl cursor-pointer transition-all">
+                    <span class="text-slate-400 block text-[10px]">TOTAL PROYECTOS</span>
+                    <span class="text-xl font-bold text-indigo-400">${total}</span>
+                </div>
+                <div onclick="mostrarDesgloseStat('Culminado')" class="bg-slate-900 hover:bg-slate-800 border border-slate-800 p-3 rounded-xl cursor-pointer transition-all">
+                    <span class="text-slate-400 block text-[10px]">CULMINADOS</span>
+                    <span class="text-xl font-bold text-emerald-400">${culm}</span>
+                </div>
+                <div onclick="mostrarDesgloseStat('En Ejecución')" class="bg-slate-900 hover:bg-slate-800 border border-slate-800 p-3 rounded-xl cursor-pointer transition-all">
+                    <span class="text-slate-400 block text-[10px]">EN EJECUCIÓN</span>
+                    <span class="text-xl font-bold text-amber-400">${ejec}</span>
+                </div>
+                <div onclick="mostrarDesgloseStat('NUDO_CRITICO')" class="bg-slate-900 hover:bg-slate-800 border border-red-500/30 p-3 rounded-xl cursor-pointer transition-all bg-red-950/10">
+                    <span class="text-red-400 block text-[10px] font-bold">⚠️ NUDOS CRÍTICOS</span>
+                    <span class="text-xl font-bold text-red-400">${nudos}</span>
+                </div>
+            `;
+            mostrarDesgloseStat('NUDO_CRITICO');
+        }
+
+        function mostrarDesgloseStat(tipo) {
+            let mun = document.getElementById('stat-municipio').value;
+            let par = document.getElementById('stat-parroquia').value;
+
+            let dataset = comunasData.filter(c => String(c.consulta || "7") === String(cicloActual));
+            if (mun !== 'TODOS') dataset = dataset.filter(c => c.municipio === mun);
+            if (par !== 'TODOS') dataset = dataset.filter(c => c.parroquia === par);
+
+            if (tipo === 'Culminado') dataset = dataset.filter(d => d.estatus_proyecto === 'Culminado');
+            else if (tipo === 'En Ejecución') dataset = dataset.filter(d => d.estatus_proyecto === 'En Ejecución');
+            else if (tipo === 'NUDO_CRITICO') dataset = dataset.filter(d => d.nudo_critico && !d.nudo_critico.includes("Sin reporte"));
+
+            document.getElementById('titulo-desglose-stat').innerText = `Proyectos en Criterio: (${tipo})`;
+
+            let html = dataset.map(p => `
+                <div onclick="mostrarFichaComuna(comunasData.find(x=>x.id==='${p.id}'))" class="bg-slate-900 p-2.5 rounded-lg border border-slate-800 cursor-pointer hover:border-indigo-500 space-y-1">
+                    <div class="font-bold text-white text-xs">${p.nombre}</div>
+                    <div class="text-[11px] text-slate-300">${p.proyectos}</div>
+                    ${tipo === 'NUDO_CRITICO' ? `<div class="text-[10px] text-red-400 italic">⚠️ ${p.nudo_critico}</div>` : ''}
+                </div>
+            `).join('');
+
+            document.getElementById('lista-desglose-stat').innerHTML = html || '<p class="text-slate-500 italic text-[11px]">No se encontraron proyectos para este criterio.</p>';
+        }
+
+        // ASISTENTE DE IA MULTIPROPÓSITO Y LIBRE
+        function abrirGeneradorReportesIA() {
+            document.getElementById('titulo-panel-lateral').innerText = "Asistente e Inteligencia Artificial";
+            const panel = document.getElementById('ficha-comuna');
+
+            document.getElementById('contenido-ficha').innerHTML = `
+                <div class="space-y-3 text-xs flex flex-col h-[calc(100vh-120px)]">
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="generarReporteGenericoIA('nudos')" class="bg-red-600/20 border border-red-500/30 text-red-300 font-bold p-2 rounded-xl text-left hover:bg-red-600/30">
+                            🚨 Nudos Críticos
+                        </button>
+                        <button onclick="generarReporteGenericoIA('ejecucion')" class="bg-amber-600/20 border border-amber-500/30 text-amber-300 font-bold p-2 rounded-xl text-left hover:bg-amber-600/30">
+                            ⚡ Avance de Obras
+                        </button>
+                    </div>
+
+                    <div id="chat-ia-respuestas" class="flex-1 bg-slate-900 border border-slate-800 rounded-xl p-3 overflow-y-auto space-y-2 font-mono text-[11px] text-slate-200">
+                        <div class="text-indigo-400 font-sans">🤖 ¡Hola! Soy el asistente táctico del CFG Lara. Puedes hacerme cualquier pregunta sobre los proyectos, comunas o solicitar un informe.</div>
+                    </div>
+
+                    <form onsubmit="preguntarIA(event)" class="flex space-x-2 pt-1">
+                        <input type="text" id="input-pregunta-ia" placeholder="Escribe tu consulta libre aquí..." class="flex-1 bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-indigo-500">
+                        <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-3 py-2 rounded-xl">Enviar</button>
+                    </form>
+                </div>
+            `;
+            panel.classList.remove('translate-x-full');
+        }
+
+        function preguntarIA(e) {
+            e.preventDefault();
+            let inp = document.getElementById('input-pregunta-ia');
+            let q = inp.value.trim();
+            if (!q) return;
+
+            let box = document.getElementById('chat-ia-respuestas');
+            box.innerHTML += `<div class="text-right text-indigo-300 font-sans my-1">👤 ${q}</div>`;
+            inp.value = '';
+
+            let dataset = comunasData.filter(c => String(c.consulta || "7") === String(cicloActual));
+            let resp = "";
+
+            let qLower = q.toLowerCase();
+            if (qLower.includes("cuantos") || qLower.includes("cuántos")) {
+                resp = `Actualmente hay un total de ${dataset.length} proyectos registrados en la ${cicloActual}ma Consulta Popular.`;
+            } else if (qLower.includes("iribarren")) {
+                let count = dataset.filter(c => c.municipio === 'Iribarren').length;
+                resp = `El municipio Iribarren cuenta con ${count} proyectos en este ciclo.`;
+            } else {
+                resp = `Analizando datos de Lara: Se registran ${dataset.length} proyectos. ${dataset.filter(d=>d.nudo_critico && !d.nudo_critico.includes("Sin reporte")).length} tienen nudos críticos activos requeridos para atención interinstitucional.`;
+            }
+
+            setTimeout(() => {
+                box.innerHTML += `<div class="bg-slate-950 p-2 rounded border border-slate-800 text-slate-200">${resp}</div>`;
+                box.scrollTop = box.scrollHeight;
+            }, 300);
+        }
+
+        function generarReporteGenericoIA(tipo) {
+            let box = document.getElementById('chat-ia-respuestas');
+            let dataset = comunasData.filter(c => String(c.consulta || "7") === String(cicloActual));
+
+            if (tipo === 'nudos') {
+                let criticos = dataset.filter(d => d.nudo_critico && !d.nudo_critico.includes("Sin reporte"));
+                let txt = `========================================\n  REPORTE TÁCTICO: NUDOS CRÍTICOS\n========================================\nAfectados: ${criticos.length}\n\n` +
+                criticos.map((c, i) => `${i+1}. ${c.nombre} (${c.municipio})\n   ⚠️ ${c.nudo_critico}`).join('\n\n');
+                box.innerHTML += `<pre class="bg-slate-950 p-2 rounded border border-slate-800 whitespace-pre-wrap">${txt}</pre>`;
+            } else if (tipo === 'ejecucion') {
+                let ejec = dataset.filter(d => d.estatus_proyecto === 'En Ejecución');
+                let txt = `========================================\n  PROYECTOS EN EJECUCIÓN\n========================================\nTotal: ${ejec.length}\n\n` +
+                ejec.map((c, i) => `${i+1}. ${c.nombre}\n   Físico: ${c.ejecucion_fisica}% | Financiero: ${c.ejecucion_financiera}%`).join('\n\n');
+                box.innerHTML += `<pre class="bg-slate-950 p-2 rounded border border-slate-800 whitespace-pre-wrap">${txt}</pre>`;
+            }
+            box.scrollTop = box.scrollHeight;
+        }
+
+        // EDICIÓN DE CONSEJOS COMUNALES Y VOCERÍAS
         function abrirModalEditarCC(idComuna) {
             let c = comunasData.find(item => item.id === idComuna || item.codigo === idComuna);
             if (!c) return;
@@ -404,7 +647,7 @@
                 </div>`;
             }).join('');
 
-            document.getElementById('titulo-panel-lateral').innerText = "Editar Consejos Comunales";
+            document.getElementById('titulo-panel-lateral').innerText = "Editar CCs y Vocerías";
             document.getElementById('contenido-ficha').innerHTML = `
                 <form onsubmit="guardarCCs(event, '${c.id}')" class="space-y-3 text-xs">
                     <p class="text-slate-400">Edita los Consejos Comunales integrantes y el estado de sus vocerías:</p>
@@ -431,7 +674,7 @@
             mostrarFichaComuna(c);
         }
 
-        // SECTOR INVERSIÓN INTERACTIVO
+        // SECTOR DE INVERSIÓN
         function abrirMatrizPreferencias() {
             document.getElementById('titulo-panel-lateral').innerText = "Sector de Inversión";
             const panel = document.getElementById('ficha-comuna');
@@ -453,7 +696,7 @@
                         <canvas id="chartSectores" width="300" height="180"></canvas>
                     </div>
                     <div class="space-y-2">
-                        <div class="font-bold text-slate-300">Haz clic en un sector para ver los proyectos:</div>
+                        <div class="font-bold text-slate-300">Haz clic en un sector para desplegar sus proyectos:</div>
                         ${listaSectoresHtml}
                     </div>
                     <div id="lista-proyectos-sector" class="space-y-2 pt-2 border-t border-slate-800 hidden"></div>
@@ -502,81 +745,6 @@
             cont.classList.remove('hidden');
         }
 
-        // RESUMEN ESTADÍSTICO ESTADAL Y MUNICIPAL
-        function abrirFichaEstadistica() {
-            document.getElementById('titulo-panel-lateral').innerText = "Ficha Estadística";
-            const panel = document.getElementById('ficha-comuna');
-
-            let dataset = comunasData.filter(c => String(c.consulta || "7") === String(cicloActual));
-            let total = dataset.length;
-            let ejec = dataset.filter(d => d.estatus_proyecto === 'En Ejecución').length;
-            let culm = dataset.filter(d => d.estatus_proyecto === 'Culminado').length;
-            let nudos = dataset.filter(d => d.nudo_critico && !d.nudo_critico.includes("Sin reporte")).length;
-
-            document.getElementById('contenido-ficha').innerHTML = `
-                <div class="space-y-3 text-xs">
-                    <div class="bg-indigo-950/40 border border-indigo-500/30 p-3 rounded-xl text-white">
-                        <h3 class="font-bold text-sm">Resumen General Lara (${cicloActual}ma Consulta)</h3>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-2 text-center">
-                        <div class="bg-slate-900 p-3 rounded-xl border border-slate-800">
-                            <span class="text-slate-400 block text-[10px]">TOTAL PROYECTOS</span>
-                            <span class="text-xl font-bold text-indigo-400">${total}</span>
-                        </div>
-                        <div class="bg-slate-900 p-3 rounded-xl border border-slate-800">
-                            <span class="text-slate-400 block text-[10px]">CULMINADOS</span>
-                            <span class="text-xl font-bold text-emerald-400">${culm}</span>
-                        </div>
-                        <div class="bg-slate-900 p-3 rounded-xl border border-slate-800">
-                            <span class="text-slate-400 block text-[10px]">EN EJECUCIÓN</span>
-                            <span class="text-xl font-bold text-amber-400">${ejec}</span>
-                        </div>
-                        <div class="bg-slate-900 p-3 rounded-xl border border-slate-800">
-                            <span class="text-slate-400 block text-[10px]">CON NUDO CRÍTICO</span>
-                            <span class="text-xl font-bold text-red-400">${nudos}</span>
-                        </div>
-                    </div>
-                </div>
-            `;
-            panel.classList.remove('translate-x-full');
-        }
-
-        // GENERADOR IA CON DETECCIÓN DE NUDOS CRÍTICOS
-        function abrirGeneradorReportesIA() {
-            document.getElementById('titulo-panel-lateral').innerText = "Reportes e Alertas IA";
-            const panel = document.getElementById('ficha-comuna');
-
-            document.getElementById('contenido-ficha').innerHTML = `
-                <div class="space-y-3 text-xs">
-                    <button onclick="generarReporteNudosIA()" class="w-full bg-red-600 hover:bg-red-500 text-white font-bold py-2.5 rounded-xl cursor-pointer">
-                        🚨 Generar Reporte de Nudos Críticos
-                    </button>
-                    <textarea id="texto-reporte-ia" readonly class="w-full h-64 bg-slate-900 border border-slate-800 rounded-xl p-3 font-mono text-[11px] text-slate-200 outline-none"></textarea>
-                </div>
-            `;
-            panel.classList.remove('translate-x-full');
-        }
-
-        function generarReporteNudosIA() {
-            let dataset = comunasData.filter(c => String(c.consulta || "7") === String(cicloActual));
-            let criticos = dataset.filter(d => d.nudo_critico && !d.nudo_critico.includes("Sin reporte"));
-
-            let rep = `==================================================
-  ALERTA TÁCTICA DE NUDOS CRÍTICOS - CFG LARA
-==================================================
-Proyectos Afectados: ${criticos.length}
---------------------------------------------------
-
-${criticos.map((c, i) => `${i+1}. [${c.municipio}] ${c.nombre}
-   • Proyecto: ${c.proyectos}
-   • Ej. Física: ${c.ejecucion_fisica}% | Financiera: ${c.ejecucion_financiera}%
-   • ALERTA / NUDO: ${c.nudo_critico}`).join('\n\n')}
-==================================================`;
-
-            document.getElementById('texto-reporte-ia').value = rep;
-        }
-
         // GESTIÓN DE USUARIOS
         function abrirGestionUsuarios() {
             document.getElementById('titulo-panel-lateral').innerText = "Gestión de Usuarios";
@@ -612,11 +780,6 @@ ${criticos.map((c, i) => `${i+1}. [${c.municipio}] ${c.nombre}
                 alert(`Usuario ${u} creado.`);
                 abrirGestionUsuarios();
             }
-        }
-
-        function filtrarPorEstatusProyecto(est) {
-            let dataset = comunasData.filter(c => String(c.consulta || "7") === String(cicloActual) && c.estatus_proyecto === est);
-            renderizarMapa(dataset);
         }
 
         function restablecerMapaCompleto() { filtrarPorCiclo(); if (map) map.setView([10.0678, -69.3474], 9); }
