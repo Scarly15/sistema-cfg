@@ -3,14 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema Táctico de Monitoreo Territorial | CFG Lara</title>
-    <!-- Tailwind CSS -->
+    <title>Centro Táctico de Monitoreo Territorial | CFG Lara</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <!-- Supabase JS Client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         #map { height: calc(100vh - 4rem); z-index: 10; }
@@ -19,7 +15,6 @@
             color: #f8fafc !important;
             border: 1px solid #334155;
             border-radius: 0.75rem;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
         }
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: #0f172a; }
@@ -29,30 +24,23 @@
 <body class="bg-slate-950 text-slate-100 font-sans antialiased overflow-hidden">
 
     <!-- LOGIN -->
-    <div id="login-screen" class="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-900 px-4 z-50 relative">
-        <div class="max-w-md w-full bg-slate-900/90 backdrop-blur-md border border-slate-800 p-8 rounded-2xl shadow-2xl">
-            <div class="text-center mb-8">
-                <div class="flex justify-center mb-3">
-                    <div class="w-12 h-12 bg-indigo-600/20 border border-indigo-500/40 rounded-xl flex items-center justify-center text-indigo-400 font-bold text-xl">CFG</div>
-                </div>
-                <span class="bg-indigo-500/10 text-indigo-400 text-xs font-semibold px-3 py-1 rounded-full uppercase border border-indigo-500/20">Consejo Federal de Gobierno</span>
-                <h1 class="text-2xl font-bold mt-3 text-white">Monitoreo Territorial Lara</h1>
+    <div id="login-screen" class="min-h-screen flex items-center justify-center bg-slate-950 px-4 z-50 relative">
+        <div class="max-w-md w-full bg-slate-900 border border-slate-800 p-8 rounded-2xl shadow-2xl">
+            <div class="text-center mb-6">
+                <span class="bg-indigo-500/10 text-indigo-400 text-xs font-semibold px-3 py-1 rounded-full border border-indigo-500/20">CFG LARA</span>
+                <h1 class="text-2xl font-bold mt-2 text-white">Monitoreo Territorial</h1>
             </div>
-            
-            <form id="login-form" onsubmit="handleLogin(event)" class="space-y-4">
+            <form onsubmit="handleLogin(event)" class="space-y-4">
                 <div>
-                    <label class="block text-xs font-medium text-slate-300 uppercase mb-1">Usuario</label>
-                    <input type="text" id="username" required class="w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-3 text-sm text-white focus:border-indigo-500 outline-none" placeholder="Ingresar usuario">
+                    <label class="block text-xs font-medium text-slate-400 uppercase mb-1">Usuario</label>
+                    <input type="text" id="username" required class="w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-2.5 text-sm text-white outline-none focus:border-indigo-500" value="admin_cfg">
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-slate-300 uppercase mb-1">Contraseña</label>
-                    <input type="password" id="password" required class="w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-3 text-sm text-white focus:border-indigo-500 outline-none" placeholder="••••••••">
+                    <label class="block text-xs font-medium text-slate-400 uppercase mb-1">Contraseña</label>
+                    <input type="password" id="password" required class="w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-2.5 text-sm text-white outline-none focus:border-indigo-500" value="admin123">
                 </div>
-                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-3 rounded-lg text-sm shadow-lg shadow-indigo-600/30 cursor-pointer">
-                    Ingresar al Sistema Táctico
-                </button>
+                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-2.5 rounded-lg text-sm transition-all cursor-pointer">Ingresar al Sistema</button>
             </form>
-            <p id="login-error" class="text-red-400 text-xs text-center mt-3 hidden bg-red-500/10 border border-red-500/20 py-2 rounded-lg"></p>
         </div>
     </div>
 
@@ -61,110 +49,86 @@
         <header class="bg-slate-900 border-b border-slate-800 h-16 flex items-center justify-between px-6 z-30">
             <div class="flex items-center space-x-3">
                 <div class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center font-bold text-white text-xs">CFG</div>
-                <span class="font-bold tracking-wide text-sm text-white">CFG LARA <span class="text-indigo-400 font-light">| Centro Táctico</span></span>
+                <span class="font-bold text-sm text-white">CFG LARA <span class="text-indigo-400 font-normal">| Centro Táctico</span></span>
             </div>
 
             <div class="flex items-center space-x-3 bg-slate-950 border border-slate-800 px-3 py-1.5 rounded-xl">
                 <span class="text-[11px] text-slate-400 uppercase font-semibold">Ciclo:</span>
-                <select id="select-ciclo-consulta" onchange="cambiarCicloConsulta(this.value)" class="bg-slate-900 text-indigo-300 text-xs font-bold border border-slate-700 rounded-lg px-3 py-1 outline-none cursor-pointer">
+                <select id="select-ciclo-consulta" onchange="cambiarCicloConsulta(this.value)" class="bg-slate-900 text-indigo-300 text-xs font-bold border border-slate-700 rounded-lg px-2 py-1 outline-none">
                     <option value="7">7ma Consulta Popular</option>
                     <option value="8">8va Consulta Popular</option>
                 </select>
             </div>
 
             <div class="flex items-center space-x-3">
-                <span id="user-display" class="text-xs bg-indigo-500/10 border border-indigo-500/30 px-3 py-1.5 rounded-full text-indigo-300 font-medium"></span>
-                
-                <button id="btn-admin-usuarios" onclick="abrirGestionUsuarios()" class="hidden text-xs bg-purple-600 hover:bg-purple-500 text-white border border-purple-400/30 px-3 py-1.5 rounded-lg transition-all shadow-md shadow-purple-600/20 cursor-pointer">
-                    ⚙️ Crear / Gestionar Usuarios
-                </button>
-
-                <button onclick="handleLogout()" class="text-xs bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 px-3 py-1.5 rounded-lg cursor-pointer">
-                    Cerrar Sesión
-                </button>
+                <span id="user-display" class="text-xs bg-indigo-500/10 border border-indigo-500/30 px-3 py-1.5 rounded-full text-indigo-300"></span>
+                <button id="btn-admin-usuarios" onclick="abrirGestionUsuarios()" class="text-xs bg-purple-600 hover:bg-purple-500 text-white px-3 py-1.5 rounded-lg">⚙️ Usuarios</button>
+                <button onclick="handleLogout()" class="text-xs bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 px-3 py-1.5 rounded-lg">Cerrar Sesión</button>
             </div>
         </header>
 
         <div class="flex-1 flex overflow-hidden relative">
-            <!-- PANEL LATERAL -->
             <aside class="w-80 bg-slate-900 border-r border-slate-800 flex flex-col p-4 space-y-3 z-20 overflow-y-auto">
-                <div class="space-y-1">
-                    <label class="text-[11px] font-semibold text-slate-400 uppercase">Buscador Territorial</label>
-                    <input type="text" id="buscador-territorial" oninput="filtrarComunas(this.value)" placeholder="Buscar por comuna o municipio..." class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-indigo-500">
-                    <div id="resultados-busqueda" class="bg-slate-950 border border-slate-800 rounded-lg max-h-40 overflow-y-auto hidden text-xs divide-y divide-slate-800 shadow-xl"></div>
-                </div>
-
-                <div class="space-y-1">
+                <div>
                     <label class="text-[11px] font-semibold text-slate-400 uppercase">Zoom por Municipio</label>
-                    <select id="select-municipio" onchange="zoomMunicipio(this.value)" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white outline-none cursor-pointer">
-                        <option value="">Seleccione Municipio...</option>
-                        <option value="Iribarren">Iribarren (Barquisimeto)</option>
-                        <option value="Palavecino">Palavecino (Cabudare)</option>
-                        <option value="Jiménez">Jiménez (Quíbor)</option>
-                        <option value="Morán">Morán (El Tocuyo)</option>
-                        <option value="Andrés Eloy Blanco">Andrés Eloy Blanco (Sanare)</option>
-                        <option value="Torres">Torres (Carora)</option>
-                        <option value="Simón Planas">Simón Planas (Sarare)</option>
-                        <option value="Crespo">Crespo (Duaca)</option>
-                        <option value="Urdaneta">Urdaneta (Siquisique)</option>
+                    <select id="select-municipio" onchange="zoomMunicipio(this.value)" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white outline-none mt-1">
+                        <option value="">Todos los Municipios</option>
+                        <option value="Iribarren">Iribarren</option>
+                        <option value="Palavecino">Palavecino</option>
+                        <option value="Jiménez">Jiménez</option>
+                        <option value="Morán">Morán</option>
+                        <option value="Andrés Eloy Blanco">Andrés Eloy Blanco</option>
+                        <option value="Torres">Torres</option>
+                        <option value="Simón Planas">Simón Planas</option>
+                        <option value="Crespo">Crespo</option>
+                        <option value="Urdaneta">Urdaneta</option>
                     </select>
                 </div>
 
-                <hr class="border-slate-800 my-1">
-
-                <!-- PIPELINE DE ESTATUS (CON ESTATUS CULMINADO) -->
+                <!-- PIPELINE Y CONTADORES -->
                 <div class="bg-slate-950 border border-slate-800 rounded-xl p-3 space-y-2">
                     <div class="flex justify-between items-center text-xs font-bold text-slate-200">
                         <span>ESTATUS DE PROYECTOS</span>
-                        <span id="total-proyectos-cargados" class="text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded border border-indigo-500/20">0</span>
+                        <span id="total-proyectos-cargados" class="text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded">0</span>
                     </div>
                     <div class="grid grid-cols-2 gap-1.5 text-[11px]">
-                        <button onclick="filtrarPorEstatusProyecto('Borrador')" class="bg-slate-900 hover:bg-slate-800 border border-slate-800 p-2 rounded-lg text-left flex justify-between items-center">
+                        <button onclick="filtrarPorEstatusProyecto('Borrador')" class="bg-slate-900 hover:bg-slate-800 border border-slate-800 p-2 rounded-lg text-left flex justify-between">
                             <span class="text-slate-400">📝 Borrador</span>
                             <span id="cant-borrador" class="font-bold text-slate-200">0</span>
                         </button>
-                        <button onclick="filtrarPorEstatusProyecto('Pre-evaluación')" class="bg-slate-900 hover:bg-slate-800 border border-slate-800 p-2 rounded-lg text-left flex justify-between items-center">
+                        <button onclick="filtrarPorEstatusProyecto('Pre-evaluación')" class="bg-slate-900 hover:bg-slate-800 border border-slate-800 p-2 rounded-lg text-left flex justify-between">
                             <span class="text-sky-400">🔍 Pre-eval.</span>
                             <span id="cant-preeval" class="font-bold text-sky-300">0</span>
                         </button>
-                        <button onclick="filtrarPorEstatusProyecto('En Evaluación')" class="bg-slate-900 hover:bg-slate-800 border border-slate-800 p-2 rounded-lg text-left flex justify-between items-center">
+                        <button onclick="filtrarPorEstatusProyecto('En Evaluación')" class="bg-slate-900 hover:bg-slate-800 border border-slate-800 p-2 rounded-lg text-left flex justify-between">
                             <span class="text-purple-400">📋 Evaluac.</span>
                             <span id="cant-eval" class="font-bold text-purple-300">0</span>
                         </button>
-                        <button onclick="filtrarPorEstatusProyecto('En Ejecución')" class="bg-slate-900 hover:bg-slate-800 border border-slate-800 p-2 rounded-lg text-left flex justify-between items-center">
+                        <button onclick="filtrarPorEstatusProyecto('En Ejecución')" class="bg-slate-900 hover:bg-slate-800 border border-slate-800 p-2 rounded-lg text-left flex justify-between">
                             <span class="text-amber-400">⚡ Ejecución</span>
                             <span id="cant-ejec" class="font-bold text-amber-300">0</span>
                         </button>
                     </div>
-                    <button onclick="filtrarPorEstatusProyecto('Culminado')" class="w-full bg-emerald-950/60 hover:bg-emerald-900/60 border border-emerald-500/30 p-2 rounded-lg text-xs flex justify-between items-center text-emerald-300 font-semibold cursor-pointer">
+                    <button onclick="filtrarPorEstatusProyecto('Culminado')" class="w-full bg-emerald-950/60 border border-emerald-500/30 p-2 rounded-lg text-xs flex justify-between text-emerald-300 font-semibold">
                         <span>🏁 Culminados / Verificados</span>
                         <span id="cant-culminado" class="font-bold bg-emerald-500/20 px-2 py-0.5 rounded">0</span>
                     </button>
                 </div>
 
-                <!-- BOTONES DE MÓDULOS -->
+                <!-- MÓDULOS DEL SISTEMA -->
                 <div class="space-y-2">
-                    <button onclick="filtrarProyectosEmblematicos()" class="w-full bg-gradient-to-r from-amber-600/20 to-orange-600/20 hover:from-amber-600/30 hover:to-orange-600/30 border border-amber-500/40 text-amber-300 font-medium py-2.5 px-3 rounded-xl text-xs flex items-center justify-between transition-all cursor-pointer shadow-md">
-                        <span>⭐ Proyectos Emblemáticos</span>
-                        <span class="text-[10px] bg-amber-500/30 px-2 py-0.5 rounded font-bold">Lara</span>
+                    <button onclick="abrirFichaEstadistica()" class="w-full bg-slate-950 border border-slate-800 text-blue-300 font-medium py-2 px-3 rounded-xl text-xs flex justify-between">
+                        <span>📈 Resumen Estadístico (Estadal/Municipal)</span>
                     </button>
-
-                    <button onclick="abrirMatrizPreferencias()" class="w-full bg-slate-950 hover:bg-slate-800 border border-slate-800 text-emerald-300 font-medium py-2 px-3 rounded-xl text-xs flex items-center justify-between transition-all cursor-pointer">
-                        <span>📊 Sector de Inversión (Matriz)</span>
-                        <span class="text-[10px] bg-emerald-500/20 px-2 py-0.5 rounded text-emerald-400">Sectores</span>
+                    <button onclick="abrirMatrizPreferencias()" class="w-full bg-slate-950 border border-slate-800 text-emerald-300 font-medium py-2 px-3 rounded-xl text-xs flex justify-between">
+                        <span>📊 Sector de Inversión (Matriz e Info)</span>
                     </button>
-
-                    <button onclick="abrirGeneradorReportesIA()" class="w-full bg-slate-950 hover:bg-slate-800 border border-slate-800 text-indigo-300 font-medium py-2 px-3 rounded-xl text-xs flex items-center justify-between transition-all cursor-pointer">
-                        <span>🤖 Reporte Ejecutivo con IA</span>
-                        <span class="text-[10px] bg-indigo-500/20 px-2 py-0.5 rounded text-indigo-400">IA GPT</span>
+                    <button onclick="abrirGeneradorReportesIA()" class="w-full bg-slate-950 border border-slate-800 text-indigo-300 font-medium py-2 px-3 rounded-xl text-xs flex justify-between">
+                        <span>🤖 Reporte Ejecutivo e Alertas IA</span>
                     </button>
                 </div>
 
-                <hr class="border-slate-800 my-1">
-
-                <button onclick="restablecerMapaCompleto()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 py-2 rounded-lg text-xs cursor-pointer">
-                    🔄 Restablecer Vista Mapa
-                </button>
+                <button onclick="restablecerMapaCompleto()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 py-2 rounded-lg text-xs">🔄 Restablecer Mapa</button>
             </aside>
 
             <main class="flex-1 relative">
@@ -172,230 +136,193 @@
             </main>
 
             <!-- FICHA LATERAL DERECHA -->
-            <div id="ficha-comuna" class="absolute right-0 top-0 h-full w-[440px] bg-slate-950 border-l border-slate-800 shadow-2xl z-50 transform translate-x-full transition-transform duration-300 flex flex-col p-6 overflow-y-auto">
+            <div id="ficha-comuna" class="absolute right-0 top-0 h-full w-[460px] bg-slate-950 border-l border-slate-800 shadow-2xl z-50 transform translate-x-full transition-transform duration-300 flex flex-col p-6 overflow-y-auto">
                 <div class="flex items-center justify-between pb-4 border-b border-slate-800">
                     <span id="titulo-panel-lateral" class="text-xs font-semibold uppercase tracking-wider text-indigo-400">Ficha Técnica Comunal</span>
-                    <button onclick="cerrarFicha()" class="text-slate-400 hover:text-white bg-slate-900 hover:bg-slate-800 w-8 h-8 rounded-full flex items-center justify-center border border-slate-700 cursor-pointer">✕</button>
+                    <button onclick="cerrarFicha()" class="text-slate-400 hover:text-white bg-slate-900 w-8 h-8 rounded-full border border-slate-700">✕</button>
                 </div>
                 <div id="contenido-ficha" class="py-4 space-y-4 text-sm text-slate-100"></div>
             </div>
         </div>
     </div>
 
-    <!-- Scripts -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
         const SUPABASE_URL = 'https://pmjgcfushafjiqziwtjr.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_awAA6RvlPzMoHUyDhMzf_Q_6BFJlgQw';
-        
         let supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
         let map;
         let comunasData = [];
         let cicloActual = "7";
         let marcadoresLayer = L.layerGroup();
         let usuarioActual = null;
+        let chartSectoresInstance = null;
 
-        let usuariosSistema = [
-            { usuario: 'scarly_creadora', pass: 'cfg2026', rol: 'Creadora del Sistema', esCreadora: true },
-            { usuario: 'admin_cfg', pass: 'admin123', rol: 'Administrador', esCreadora: false }
-        ];
+        const municipiosMap = {
+            1: "Iribarren", 2: "Palavecino", 3: "Iribarren", 4: "Jiménez",
+            5: "Morán", 6: "Andrés Eloy Blanco", 7: "Torres", 8: "Simón Planas", 9: "Crespo", 10: "Urdaneta"
+        };
 
         const municipiosCoordenadas = {
             "Iribarren": { lat: 10.0678, lng: -69.3474, zoom: 12 },
             "Palavecino": { lat: 10.2435, lng: -69.2631, zoom: 13 },
             "Jiménez": { lat: 9.9791, lng: -69.7854, zoom: 12 },
-            "Morán": { lat: 9.8052, lng: -69.7919, zoom: 12 },
-            "Andrés Eloy Blanco": { lat: 9.7717, lng: -69.6453, zoom: 13 },
-            "Torres": { lat: 10.3308, lng: -70.0805, zoom: 11 },
-            "Simón Planas": { lat: 9.8078, lng: -69.0528, zoom: 12 },
-            "Crespo": { lat: 10.2797, lng: -69.2153, zoom: 13 },
-            "Urdaneta": { lat: 10.6300, lng: -69.4800, zoom: 11 }
+            "Simón Planas": { lat: 9.8078, lng: -69.0528, zoom: 12 }
         };
 
+        // DATOS BASE CON SEGUIMIENTO DE VOCERÍAS, AVANCE FÍSICO/FINANCIERO Y NUDOS CRÍTICOS
         const comunasRespaldo = [
             { 
+                id: "COM-001",
                 codigo: "COM-001",
-                nombre: "Comuna Socialista El Maizal", 
-                municipio: "Simón Planas", 
-                parroquia: "Sarare",
-                lat: 9.8078, lng: -69.0528, 
-                consejos_comunales: ["CC La Miel Centro", "CC Sabana Verde", "CC El Roble", "CC Simón Bolívar", "CC Las Marías", "CC Camoruco", "CC Los Pinos"],
-                organizacion_ejecutora: "Consejo Comunal La Miel Centro",
-                proyectos: "Rehabilitación de Red de Agua Potable y Estación de Bombeo",
-                estatus_proyecto: "En Ejecución",
-                sector: "Agua Potable",
-                es_emblematico: true,
-                consulta: "7"
-            },
-            { 
-                codigo: "COM-002",
-                nombre: "Comuna Ataroa", 
+                nombre: "Comuna Piloto Lara", 
                 municipio: "Iribarren", 
                 parroquia: "Concepción",
                 lat: 10.0600, lng: -69.3300, 
-                consejos_comunales: ["CC Barrio Unión Sector 1", "CC La Batalla", "CC Ruiz Pineda", "CC 12 de Octubre", "CC San José"],
+                consejos_comunales: [
+                    { nombre: "CC La Batalla", voceria_estatus: "Vigente" },
+                    { nombre: "CC Ruiz Pineda", voceria_estatus: "Vencida" },
+                    { nombre: "CC 12 de Octubre", voceria_estatus: "Vigente" }
+                ],
                 organizacion_ejecutora: "Consejo Comunal La Batalla",
                 proyectos: "Sustitución Colectores de Aguas Servidas",
-                estatus_proyecto: "Culminado",
+                estatus_proyecto: "En Ejecución",
+                ejecucion_fisica: 65,
+                ejecucion_financiera: 80,
+                nudo_critico: "Requerimiento de maquinaria pesada para excavación profunda.",
                 sector: "Aguas Servidas",
-                es_emblematico: true,
                 consulta: "7"
             },
             { 
-                codigo: "COM-003",
-                nombre: "Comuna Valle de Quíbor", 
-                municipio: "Jiménez", 
-                parroquia: "Catedral",
-                lat: 9.9800, lng: -69.7800, 
-                consejos_comunales: ["CC Ceiba Sur", "CC La Ermita", "CC Plaza Bolívar", "CC San Rafael"],
-                organizacion_ejecutora: "Consejo Comunal Ceiba Sur",
-                proyectos: "Asfaltado y Electrificación Vial Agrícola",
-                estatus_proyecto: "En Evaluación",
-                sector: "Vialidad",
-                es_emblematico: false,
+                id: "COM-002",
+                codigo: "COM-002",
+                nombre: "Comuna El Maizal", 
+                municipio: "Simón Planas", 
+                parroquia: "Sarare",
+                lat: 9.8078, lng: -69.0528, 
+                consejos_comunales: [
+                    { nombre: "CC La Miel Centro", voceria_estatus: "Vigente" },
+                    { nombre: "CC Sabana Verde", voceria_estatus: "Vigente" }
+                ],
+                organizacion_ejecutora: "Consejo Comunal La Miel Centro",
+                proyectos: "Rehabilitación de Red de Agua Potable y Estación de Bombeo",
+                estatus_proyecto: "Culminado",
+                ejecucion_fisica: 100,
+                ejecucion_financiera: 100,
+                nudo_critico: "Ninguno. Obra concluida de forma satisfactoria.",
+                sector: "Agua Potable",
                 consulta: "7"
-            },
-            { 
-                codigo: "COM-101",
-                nombre: "Comuna Batalla de Cabudare", 
-                municipio: "Palavecino", 
-                parroquia: "Cabudare",
-                lat: 10.2350, lng: -69.2550, 
-                consejos_comunales: ["CC Los Rastrojos", "CC La Alfarería", "CC Tarabana"],
-                organizacion_ejecutora: "Consejo Comunal Los Rastrojos",
-                proyectos: "Adquisición e Instalación de Transformadores Eléctricos",
-                estatus_proyecto: "Borrador",
-                sector: "Electricidad",
-                es_emblematico: false,
-                consulta: "8"
             }
+        ];
+
+        let usuariosSistema = [
+            { usuario: 'admin_cfg', pass: 'admin123', rol: 'Administrador' },
+            { usuario: 'scarly_creadora', pass: 'cfg2026', rol: 'Creadora del Sistema' }
         ];
 
         function handleLogin(event) {
             event.preventDefault();
-            const user = document.getElementById('username').value.trim();
-            const pass = document.getElementById('password').value.trim();
-            
-            const encontrado = usuariosSistema.find(u => u.usuario === user && u.pass === pass);
-
-            if (encontrado) {
-                usuarioActual = encontrado;
+            const u = document.getElementById('username').value.trim();
+            const p = document.getElementById('password').value.trim();
+            const enc = usuariosSistema.find(user => user.usuario === u && user.pass === p);
+            if (enc) {
+                usuarioActual = enc;
                 document.getElementById('login-screen').classList.add('hidden');
                 document.getElementById('app-screen').classList.remove('hidden');
-                document.getElementById('user-display').innerHTML = `👤 ${encontrado.usuario} <span class="text-[10px] opacity-75">(${encontrado.rol})</span>`;
-                
-                if (encontrado.esCreadora) {
-                    document.getElementById('btn-admin-usuarios').classList.remove('hidden');
-                }
-
-                setTimeout(() => {
-                    initMap();
-                    cargarDatosSupabase();
-                }, 100);
-            } else {
-                const err = document.getElementById('login-error');
-                err.innerText = 'Usuario o contraseña no autorizados.';
-                err.classList.remove('hidden');
+                document.getElementById('user-display').innerText = `👤 ${enc.usuario}`;
+                setTimeout(() => { initMap(); cargarDatos(); }, 100);
             }
         }
 
         function handleLogout() {
-            usuarioActual = null;
             document.getElementById('app-screen').classList.add('hidden');
             document.getElementById('login-screen').classList.remove('hidden');
-            document.getElementById('btn-admin-usuarios').classList.add('hidden');
         }
 
         function initMap() {
             if (!map) {
                 map = L.map('map').setView([10.0678, -69.3474], 9);
-                L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-                    maxZoom: 18, attribution: '&copy; OpenStreetMap & CFG Lara'
-                }).addTo(map);
+                L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { maxZoom: 18 }).addTo(map);
                 marcadoresLayer.addTo(map);
             }
         }
 
-        async function cargarDatosSupabase() {
+        async function cargarDatos() {
             try {
                 const { data, error } = await supabaseClient.from('comunas').select('*');
-                if (error || !data || data.length === 0) throw error || new Error("Sin datos de DB");
-                comunasData = data;
+                if (error || !data || data.length === 0) throw error || new Error();
+                
+                comunasData = data.map(item => ({
+                    ...item,
+                    municipio: typeof item.municipio === 'number' ? (municipiosMap[item.municipio] || `Municipio ${item.municipio}`) : (item.municipio || "Iribarren"),
+                    estatus_proyecto: item.estatus_proyecto || item.estatus || "Borrador",
+                    ejecucion_fisica: item.ejecucion_fisica || 0,
+                    ejecucion_financiera: item.ejecucion_financiera || 0,
+                    nudo_critico: item.nudo_critico || "Sin reporte de nudos críticos."
+                }));
             } catch (err) {
                 comunasData = [...comunasRespaldo];
             }
-            filtrarPorCicloActivo();
+            filtrarPorCiclo();
         }
 
-        function cambiarCicloConsulta(valor) {
-            cicloActual = valor;
-            filtrarPorCicloActivo();
+        function cambiarCicloConsulta(val) { cicloActual = val; filtrarPorCiclo(); }
+
+        function filtrarPorCiclo() {
+            let filtrados = comunasData.filter(c => String(c.consulta || "7") === String(cicloActual));
+            actualizarPipeline(filtrados);
+            renderizarMapa(filtrados);
         }
 
-        function filtrarPorCicloActivo() {
-            let datosFiltrados = comunasData.filter(c => String(c.consulta || "7") === String(cicloActual));
-            actualizarPipelineEstatus(datosFiltrados);
-            renderizarComunasEnMapa(datosFiltrados);
-        }
-
-        function actualizarPipelineEstatus(data) {
+        function actualizarPipeline(data) {
             document.getElementById('total-proyectos-cargados').innerText = `${data.length} Proyectos`;
-
-            const borrador = data.filter(c => c.estatus_proyecto === 'Borrador').length;
-            const preeval = data.filter(c => c.estatus_proyecto === 'Pre-evaluación').length;
-            const evaluacion = data.filter(c => c.estatus_proyecto === 'En Evaluación').length;
-            const ejec = data.filter(c => c.estatus_proyecto === 'En Ejecución').length;
-            const culminado = data.filter(c => c.estatus_proyecto === 'Culminado').length;
-
-            document.getElementById('cant-borrador').innerText = borrador;
-            document.getElementById('cant-preeval').innerText = preeval;
-            document.getElementById('cant-eval').innerText = evaluacion;
-            document.getElementById('cant-ejec').innerText = ejec;
-            document.getElementById('cant-culminado').innerText = culminado;
+            document.getElementById('cant-borrador').innerText = data.filter(c => c.estatus_proyecto === 'Borrador').length;
+            document.getElementById('cant-preeval').innerText = data.filter(c => c.estatus_proyecto === 'Pre-evaluación').length;
+            document.getElementById('cant-eval').innerText = data.filter(c => c.estatus_proyecto === 'En Evaluación').length;
+            document.getElementById('cant-ejec').innerText = data.filter(c => c.estatus_proyecto === 'En Ejecución').length;
+            document.getElementById('cant-culminado').innerText = data.filter(c => c.estatus_proyecto === 'Culminado').length;
         }
 
-        function renderizarComunasEnMapa(data) {
+        function renderizarMapa(data) {
             marcadoresLayer.clearLayers();
             data.forEach(c => {
                 if (c.lat && c.lng) {
-                    let color = '#6366f1'; 
-                    if (c.estatus_proyecto === 'En Ejecución') color = '#f59e0b';
-                    else if (c.estatus_proyecto === 'En Evaluación') color = '#a855f7';
-                    else if (c.estatus_proyecto === 'Pre-evaluación') color = '#38bdf8';
-                    else if (c.estatus_proyecto === 'Culminado') color = '#10b981';
+                    let col = '#6366f1';
+                    if (c.estatus_proyecto === 'En Ejecución') col = '#f59e0b';
+                    else if (c.estatus_proyecto === 'Culminado') col = '#10b981';
 
                     let icon = L.divIcon({
                         className: 'pin',
-                        html: `<div style="background-color: ${color}; width: 16px; height: 16px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 10px rgba(0,0,0,0.5);"></div>`,
-                        iconSize: [16, 16]
+                        html: `<div style="background:${col}; width:16px; height:16px; border-radius:50%; border:2px solid white;"></div>`
                     });
 
-                    let marker = L.marker([c.lat, c.lng], { icon: icon });
-                    marker.bindPopup(`<b>${c.nombre}</b><br><span style="font-size: 11px;">Municipio: ${c.municipio}</span>`);
-                    marker.on('click', () => {
-                        mostrarFichaComuna(c);
-                        map.setView([c.lat, c.lng], 13);
-                    });
-                    marcadoresLayer.addLayer(marker);
+                    let m = L.marker([c.lat, c.lng], { icon: icon });
+                    m.bindPopup(`<b>${c.nombre}</b><br>Municipio: ${c.municipio}`);
+                    m.on('click', () => { mostrarFichaComuna(c); map.setView([c.lat, c.lng], 13); });
+                    marcadoresLayer.addLayer(m);
                 }
             });
         }
 
+        // FICHA TÉCNICA CON DETALLE FÍSICO, FINANCIERO Y VOCERÍAS
         function mostrarFichaComuna(c) {
             document.getElementById('titulo-panel-lateral').innerText = "Ficha Técnica Comunal";
             const panel = document.getElementById('ficha-comuna');
 
-            let ccsHtml = '';
-            if (c.consejos_comunales && Array.isArray(c.consejos_comunales)) {
-                ccsHtml = c.consejos_comunales.slice(0, 9).map((cc, i) => 
-                    `<div class="bg-slate-950 p-2 rounded border border-slate-800 text-[11px] flex justify-between items-center">
-                        <span class="text-slate-300 font-medium">${i + 1}. ${cc}</span>
-                        <span class="text-[9px] bg-emerald-500/10 text-emerald-400 px-1.5 py-0.5 rounded">Vigente</span>
-                     </div>`
-                ).join('');
-            } else {
-                ccsHtml = `<p class="text-xs text-slate-500 italic">Sin consejos comunales registrados.</p>`;
-            }
+            let ccs = Array.isArray(c.consejos_comunales) ? c.consejos_comunales : [];
+            let ccsHtml = ccs.map((cc, i) => {
+                let nombreCC = typeof cc === 'string' ? cc : cc.nombre;
+                let voceria = cc.voceria_estatus || "Vigente";
+                let badgeCol = voceria === 'Vigente' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-red-500/20 text-red-400';
+                
+                return `<div class="bg-slate-900 p-2 rounded border border-slate-800 text-xs flex justify-between items-center">
+                    <div>
+                        <span class="text-white font-medium">${i+1}. ${nombreCC}</span>
+                    </div>
+                    <span class="text-[9px] ${badgeCol} px-2 py-0.5 rounded font-bold">${voceria}</span>
+                </div>`;
+            }).join('');
 
             document.getElementById('contenido-ficha').innerHTML = `
                 <div>
@@ -403,150 +330,119 @@
                     <span class="text-xs bg-indigo-500/10 text-indigo-400 px-2 py-0.5 rounded border border-indigo-500/20">Código: ${c.codigo || 'COM-CFG'}</span>
                 </div>
 
-                <div class="bg-slate-900 p-3 rounded-xl border border-slate-800 space-y-2 text-xs">
-                    <div class="flex justify-between"><span class="text-slate-400">Municipio:</span> <span class="font-bold text-indigo-300">${c.municipio || 'N/D'}</span></div>
-                    <div class="flex justify-between"><span class="text-slate-400">Parroquia:</span> <span class="font-medium text-white">${c.parroquia || 'N/D'}</span></div>
+                <div class="bg-slate-900 p-3 rounded-xl border border-slate-800 space-y-1 text-xs">
+                    <div class="flex justify-between"><span class="text-slate-400">Municipio:</span><span class="font-bold text-indigo-300">${c.municipio}</span></div>
+                    <div class="flex justify-between"><span class="text-slate-400">Parroquia:</span><span class="text-white">${c.parroquia || 'N/D'}</span></div>
                 </div>
 
                 <div class="bg-slate-900 p-3 rounded-xl border border-slate-800 space-y-2 text-xs">
-                    <div class="font-bold text-amber-400 flex items-center justify-between">
-                        <span>🏛️ Proyecto Popular Carga</span>
-                        <span class="text-[10px] bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">${c.estatus_proyecto || 'Borrador'}</span>
+                    <div class="font-bold text-amber-400 flex justify-between">
+                        <span>🏛️ Proyecto Carga</span>
+                        <span class="bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded">${c.estatus_proyecto}</span>
                     </div>
                     <p class="text-white font-medium">${c.proyectos || 'Sin proyecto asignado'}</p>
-                    <hr class="border-slate-800 my-1">
-                    <div class="text-[11px]">
-                        <span class="text-slate-400 block">Organización Ejecutora (OEP):</span>
-                        <span class="text-emerald-400 font-semibold">${c.organizacion_ejecutora || 'Consejo Comunal Principal'}</span>
+                    
+                    <!-- AVANCES FÍSICO Y FINANCIERO -->
+                    <div class="pt-2 space-y-2 border-t border-slate-800">
+                        <div>
+                            <div class="flex justify-between text-[10px] mb-1">
+                                <span class="text-slate-400">Ejecución Física:</span>
+                                <span class="text-emerald-400 font-bold">${c.ejecucion_fisica}%</span>
+                            </div>
+                            <div class="w-full bg-slate-950 h-2 rounded-full overflow-hidden">
+                                <div class="bg-emerald-500 h-full" style="width: ${c.ejecucion_fisica}%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-[10px] mb-1">
+                                <span class="text-slate-400">Ejecución Financiera:</span>
+                                <span class="text-blue-400 font-bold">${c.ejecucion_financiera}%</span>
+                            </div>
+                            <div class="w-full bg-slate-950 h-2 rounded-full overflow-hidden">
+                                <div class="bg-blue-500 h-full" style="width: ${c.ejecucion_financiera}%"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- NUDO CRÍTICO -->
+                    <div class="pt-2 border-t border-slate-800">
+                        <span class="text-[10px] text-red-400 font-bold uppercase block">⚠️ Nudo Crítico / Observación:</span>
+                        <p class="text-[11px] text-slate-300 italic">${c.nudo_critico}</p>
                     </div>
                 </div>
 
+                <!-- CONSEJOS COMUNALES Y EDICIÓN -->
                 <div class="bg-slate-900 p-3 rounded-xl border border-slate-800 space-y-2 text-xs">
-                    <div class="font-bold text-indigo-300 flex justify-between items-center">
-                        <span>👥 Consejos Comunales Integrantes</span>
-                        <span class="text-[10px] bg-indigo-500/10 text-indigo-400 px-2 py-0.5 rounded">${c.consejos_comunales ? c.consejos_comunales.length : 0} / 9</span>
+                    <div class="flex justify-between items-center">
+                        <span class="font-bold text-indigo-300">👥 Consejos Comunales (${ccs.length}/9)</span>
+                        <button onclick="abrirModalEditarCC('${c.id}')" class="text-[10px] bg-indigo-600 hover:bg-indigo-500 text-white px-2 py-1 rounded">✏️ Editar CCs y Vocería</button>
                     </div>
-                    <div class="space-y-1 max-h-36 overflow-y-auto">
-                        ${ccsHtml}
-                    </div>
+                    <div class="space-y-1 max-h-36 overflow-y-auto">${ccsHtml || '<p class="text-slate-500 italic">No hay consejos comunales registrados.</p>'}</div>
                 </div>
             `;
             panel.classList.remove('translate-x-full');
         }
 
-        // PROYECTOS EMBLEMÁTICOS
-        function filtrarProyectosEmblematicos() {
-            let emblemáticos = comunasData.filter(c => c.es_emblematico && String(c.consulta || "7") === String(cicloActual));
-            renderizarComunasEnMapa(emblemáticos);
-            
-            document.getElementById('titulo-panel-lateral').innerText = "Proyectos Emblemáticos Lara";
-            const panel = document.getElementById('ficha-comuna');
+        // MÓDULO PARA EDITAR CONSEJOS COMUNALES Y VOCERÍAS
+        function abrirModalEditarCC(idComuna) {
+            let c = comunasData.find(item => item.id === idComuna || item.codigo === idComuna);
+            if (!c) return;
 
-            let htmlLista = emblemáticos.map(c => `
-                <div onclick="mostrarFichaComunaPorCodigo('${c.codigo}')" class="bg-slate-900 hover:bg-slate-800 p-3 rounded-xl border border-amber-500/30 cursor-pointer space-y-1">
-                    <div class="font-bold text-amber-300 text-xs">${c.nombre}</div>
-                    <div class="text-[11px] text-slate-300 font-medium">${c.proyectos}</div>
-                    <div class="text-[10px] text-slate-400">Municipio: ${c.municipio} | Estatus: <span class="text-emerald-400 font-semibold">${c.estatus_proyecto}</span></div>
-                </div>
-            `).join('');
+            let ccs = Array.isArray(c.consejos_comunales) ? c.consejos_comunales : [];
+            let inputsHtml = [0,1,2,3,4,5,6,7,8].map(i => {
+                let cc = ccs[i] || { nombre: '', voceria_estatus: 'Vigente' };
+                let nombre = typeof cc === 'string' ? cc : cc.nombre;
+                let estatus = cc.voceria_estatus || 'Vigente';
 
+                return `<div class="grid grid-cols-3 gap-2 items-center">
+                    <input type="text" id="cc-nombre-${i}" value="${nombre || ''}" placeholder="CC ${i+1}" class="col-span-2 bg-slate-950 border border-slate-800 rounded px-2 py-1 text-xs text-white">
+                    <select id="cc-voceria-${i}" class="bg-slate-950 border border-slate-800 rounded px-1 py-1 text-[10px] text-slate-200">
+                        <option value="Vigente" ${estatus === 'Vigente' ? 'selected' : ''}>Vigente</option>
+                        <option value="Vencida" ${estatus === 'Vencida' ? 'selected' : ''}>Vencida</option>
+                        <option value="Reestructuración" ${estatus === 'Reestructuración' ? 'selected' : ''}>Reestruct.</option>
+                    </select>
+                </div>`;
+            }).join('');
+
+            document.getElementById('titulo-panel-lateral').innerText = "Editar Consejos Comunales";
             document.getElementById('contenido-ficha').innerHTML = `
-                <div class="space-y-3">
-                    <div class="text-xs text-slate-300 bg-amber-500/10 border border-amber-500/20 p-2.5 rounded-lg">
-                        ⭐ Proyectos de alto impacto comunitario seleccionados en la Consulta Popular.
-                    </div>
-                    ${htmlLista || '<p class="text-xs text-slate-500">No hay proyectos emblemáticos marcados en este ciclo.</p>'}
-                </div>
+                <form onsubmit="guardarCCs(event, '${c.id}')" class="space-y-3 text-xs">
+                    <p class="text-slate-400">Edita los Consejos Comunales integrantes y el estado de sus vocerías:</p>
+                    <div class="space-y-2 max-h-80 overflow-y-auto pr-1">${inputsHtml}</div>
+                    <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 rounded-lg">💾 Guardar Cambios</button>
+                </form>
             `;
-            panel.classList.remove('translate-x-full');
         }
 
-        // REPORTE EJECUTIVO CON IA INTERACTIVA
-        function abrirGeneradorReportesIA() {
-            document.getElementById('titulo-panel-lateral').innerText = "Generador de Reportes con IA";
-            const panel = document.getElementById('ficha-comuna');
+        function guardarCCs(e, idComuna) {
+            e.preventDefault();
+            let c = comunasData.find(item => item.id === idComuna || item.codigo === idComuna);
+            if (!c) return;
 
-            document.getElementById('contenido-ficha').innerHTML = `
-                <div class="space-y-3 text-xs">
-                    <div class="bg-indigo-950/40 border border-indigo-500/30 p-3 rounded-xl text-indigo-200">
-                        <b>🤖 Asistente IA Táctico:</b> Escribe qué información específica deseas resumir del sistema (ej: "Proyectos de agua en Simón Planas", "Proyectos culminados").
-                    </div>
-
-                    <div>
-                        <label class="text-[10px] uppercase font-bold text-slate-400">¿Qué deseas saber o analizar?</label>
-                        <input type="text" id="prompt-ia" placeholder="Ej. Resumen de proyectos en ejecucion..." class="w-full bg-slate-900 border border-slate-800 rounded-lg p-2.5 text-white mt-1 text-xs outline-none focus:border-indigo-500">
-                    </div>
-
-                    <button onclick="generarReporteIA()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2.5 rounded-xl cursor-pointer">
-                        ✨ Generar Reporte con IA
-                    </button>
-
-                    <div id="resultado-reporte-ia" class="hidden space-y-2">
-                        <label class="text-[10px] uppercase font-bold text-slate-400">Reporte Generado:</label>
-                        <textarea id="texto-reporte-ia" readonly class="w-full h-48 bg-slate-900 border border-slate-800 rounded-xl p-3 font-mono text-[11px] text-slate-200 leading-relaxed outline-none"></textarea>
-                        <button onclick="navigator.clipboard.writeText(document.getElementById('texto-reporte-ia').value); alert('Reporte copiado');" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 py-2 rounded-lg text-xs cursor-pointer">📋 Copiar Reporte</button>
-                    </div>
-                </div>
-            `;
-            panel.classList.remove('translate-x-full');
-        }
-
-        function generarReporteIA() {
-            const prompt = document.getElementById('prompt-ia').value.trim().toLowerCase();
-            const resDiv = document.getElementById('resultado-reporte-ia');
-            const txtArea = document.getElementById('texto-reporte-ia');
-
-            let dataset = comunasData.filter(c => String(c.consulta || "7") === String(cicloActual));
-            if (prompt) {
-                dataset = dataset.filter(c => 
-                    (c.municipio && c.municipio.toLowerCase().includes(prompt)) ||
-                    (c.sector && c.sector.toLowerCase().includes(prompt)) ||
-                    (c.estatus_proyecto && c.estatus_proyecto.toLowerCase().includes(prompt)) ||
-                    (c.nombre && c.nombre.toLowerCase().includes(prompt))
-                );
+            let nuevosCCs = [];
+            for (let i = 0; i < 9; i++) {
+                let nom = document.getElementById(`cc-nombre-${i}`).value.trim();
+                let voc = document.getElementById(`cc-voceria-${i}`).value;
+                if (nom) nuevosCCs.push({ nombre: nom, voceria_estatus: voc });
             }
 
-            let fecha = new Date().toLocaleDateString('es-VE');
-            let reporte = `==================================================
-  CENTRO TÁCTICO CFG LARA - REPORTE IA
-==================================================
-Fecha de Generación: ${fecha}
-Parámetro de Búsqueda: "${prompt || 'General'}"
-Consulta Popular: ${cicloActual}ma Edición
-Total Registros Identificados: ${dataset.length}
---------------------------------------------------
-
-RESUMEN DE PROYECTOS:
-${dataset.map((c, i) => `${i + 1}. [${c.municipio}] ${c.nombre}
-   • Proyecto: ${c.proyectos}
-   • Sector: ${c.sector || 'General'} | Estatus: ${c.estatus_proyecto}
-   • OEP: ${c.organizacion_ejecutora || 'Consejo Comunal'}`).join('\n\n')}
-
---------------------------------------------------
-DIAGNÓSTICO TÁCTICO:
-El ${Math.round((dataset.filter(d=>d.estatus_proyecto==='En Ejecución' || d.estatus_proyecto==='Culminado').length / (dataset.length||1))*100)}% de los proyectos priorizados se encuentran en fase activa de ejecución o finalización.
-==================================================`;
-
-            txtArea.value = reporte;
-            resDiv.classList.remove('hidden');
+            c.consejos_comunales = nuevosCCs;
+            alert("¡Consejos comunales y vocerías actualizados con éxito!");
+            mostrarFichaComuna(c);
         }
 
-        // DESGLOSE POR SECTOR DE INVERSIÓN
+        // SECTOR INVERSIÓN INTERACTIVO
         function abrirMatrizPreferencias() {
-            document.getElementById('titulo-panel-lateral').innerText = "Sector de Inversión (Matriz)";
+            document.getElementById('titulo-panel-lateral').innerText = "Sector de Inversión";
             const panel = document.getElementById('ficha-comuna');
 
             let sectores = {};
             let dataset = comunasData.filter(c => String(c.consulta || "7") === String(cicloActual));
-            
-            dataset.forEach(c => {
-                let s = c.sector || "General";
-                sectores[s] = (sectores[s] || 0) + 1;
-            });
+            dataset.forEach(c => { let s = c.sector || "General"; sectores[s] = (sectores[s] || 0) + 1; });
 
-            let desglosesHtml = Object.keys(sectores).map(sec => `
-                <div onclick="filtrarPorSectorEspecifico('${sec}')" class="bg-slate-900 hover:bg-slate-800 p-3 rounded-xl border border-slate-800 flex justify-between items-center cursor-pointer">
-                    <span class="text-white font-medium text-xs">${sec}</span>
+            let listaSectoresHtml = Object.keys(sectores).map(sec => `
+                <div onclick="desplegarProyectosPorSector('${sec}')" class="bg-slate-900 hover:bg-slate-800 p-3 rounded-xl border border-slate-800 flex justify-between items-center cursor-pointer">
+                    <span class="text-white font-medium text-xs">📁 ${sec}</span>
                     <span class="text-xs bg-indigo-500/20 text-indigo-300 px-2 py-0.5 rounded font-bold">${sectores[sec]} Proyectos</span>
                 </div>
             `).join('');
@@ -554,129 +450,178 @@ El ${Math.round((dataset.filter(d=>d.estatus_proyecto==='En Ejecución' || d.est
             document.getElementById('contenido-ficha').innerHTML = `
                 <div class="space-y-4 text-xs">
                     <div class="bg-slate-900 p-3 rounded-xl border border-slate-800">
-                        <div class="font-bold text-white mb-2">Distribución de Proyectos por Sector</div>
                         <canvas id="chartSectores" width="300" height="180"></canvas>
                     </div>
-
                     <div class="space-y-2">
-                        <div class="font-bold text-slate-300">Seleccionar Sector para Desglose:</div>
-                        ${desglosesHtml}
+                        <div class="font-bold text-slate-300">Haz clic en un sector para ver los proyectos:</div>
+                        ${listaSectoresHtml}
                     </div>
+                    <div id="lista-proyectos-sector" class="space-y-2 pt-2 border-t border-slate-800 hidden"></div>
                 </div>
             `;
             panel.classList.remove('translate-x-full');
 
             setTimeout(() => {
                 const ctx = document.getElementById('chartSectores').getContext('2d');
-                new Chart(ctx, {
+                chartSectoresInstance = new Chart(ctx, {
                     type: 'doughnut',
                     data: {
                         labels: Object.keys(sectores),
                         datasets: [{ data: Object.values(sectores), backgroundColor: ['#6366f1', '#a855f7', '#10b981', '#f59e0b', '#38bdf8'] }]
                     },
-                    options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { color: '#cbd5e1', font: { size: 10 } } } } }
+                    options: {
+                        responsive: true,
+                        onClick: (e, elements) => {
+                            if (elements.length > 0) {
+                                let idx = elements[0].index;
+                                let sectorNom = Object.keys(sectores)[idx];
+                                desplegarProyectosPorSector(sectorNom);
+                            }
+                        }
+                    }
                 });
             }, 200);
         }
 
-        function filtrarPorSectorEspecifico(sector) {
-            let filtrados = comunasData.filter(c => String(c.consulta || "7") === String(cicloActual) && (c.sector || "General") === sector);
-            renderizarComunasEnMapa(filtrados);
+        function desplegarProyectosPorSector(sector) {
+            let cont = document.getElementById('lista-proyectos-sector');
+            let proys = comunasData.filter(c => String(c.consulta || "7") === String(cicloActual) && (c.sector || "General") === sector);
+
+            let html = proys.map(p => `
+                <div onclick="mostrarFichaComuna(comunasData.find(x=>x.id==='${p.id}'))" class="bg-slate-900 p-2.5 rounded-lg border border-slate-800 cursor-pointer hover:border-indigo-500 space-y-1">
+                    <div class="font-bold text-white text-xs">${p.nombre}</div>
+                    <div class="text-[11px] text-slate-300">${p.proyectos}</div>
+                    <div class="flex justify-between text-[10px] text-slate-400">
+                        <span>Físico: <b class="text-emerald-400">${p.ejecucion_fisica}%</b></span>
+                        <span>Financiero: <b class="text-blue-400">${p.ejecucion_financiera}%</b></span>
+                    </div>
+                </div>
+            `).join('');
+
+            cont.innerHTML = `<div class="font-bold text-indigo-300 text-xs mb-2">Proyectos en ${sector}:</div>${html}`;
+            cont.classList.remove('hidden');
         }
 
-        // MÓDULO CREADORA - USUARIOS
-        function abrirGestionUsuarios() {
-            if (!usuarioActual || !usuarioActual.esCreadora) return;
-
-            document.getElementById('titulo-panel-lateral').innerText = "Gestión de Usuarios (Creadora)";
+        // RESUMEN ESTADÍSTICO ESTADAL Y MUNICIPAL
+        function abrirFichaEstadistica() {
+            document.getElementById('titulo-panel-lateral').innerText = "Ficha Estadística";
             const panel = document.getElementById('ficha-comuna');
 
-            let listaHtml = usuariosSistema.map(u => 
-                `<div class="bg-slate-900 p-3 rounded-xl border border-slate-800 flex justify-between items-center text-xs">
-                    <div>
-                        <div class="font-bold text-white">${u.usuario}</div>
-                        <div class="text-[10px] text-slate-400">${u.rol}</div>
-                    </div>
-                    ${u.esCreadora ? '<span class="text-[9px] bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded border border-purple-500/30">Creadora</span>' : '<span class="text-[9px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded">Estándar</span>'}
-                 </div>`
-            ).join('');
+            let dataset = comunasData.filter(c => String(c.consulta || "7") === String(cicloActual));
+            let total = dataset.length;
+            let ejec = dataset.filter(d => d.estatus_proyecto === 'En Ejecución').length;
+            let culm = dataset.filter(d => d.estatus_proyecto === 'Culminado').length;
+            let nudos = dataset.filter(d => d.nudo_critico && !d.nudo_critico.includes("Sin reporte")).length;
 
             document.getElementById('contenido-ficha').innerHTML = `
-                <div class="space-y-4 text-xs">
-                    <form onsubmit="crearNuevoUsuario(event)" class="bg-slate-900 p-3 rounded-xl border border-slate-800 space-y-3">
-                        <div class="font-bold text-white">Crear Nuevo Usuario</div>
-                        <div>
-                            <label class="text-[10px] text-slate-400 uppercase">Usuario</label>
-                            <input type="text" id="nuevo-user" required class="w-full bg-slate-950 border border-slate-800 rounded px-2.5 py-1.5 text-white text-xs mt-1 outline-none">
-                        </div>
-                        <div>
-                            <label class="text-[10px] text-slate-400 uppercase">Contraseña</label>
-                            <input type="password" id="nuevo-pass" required class="w-full bg-slate-950 border border-slate-800 rounded px-2.5 py-1.5 text-white text-xs mt-1 outline-none">
-                        </div>
-                        <div>
-                            <label class="text-[10px] text-slate-400 uppercase">Rol</label>
-                            <select id="nuevo-rol" class="w-full bg-slate-950 border border-slate-800 rounded px-2.5 py-1.5 text-white text-xs mt-1 outline-none">
-                                <option value="Analista Táctico">Analista Táctico</option>
-                                <option value="Administrador">Administrador</option>
-                            </select>
-                        </div>
-                        <button type="submit" class="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-2 rounded-lg cursor-pointer">
-                            ➕ Registrar Usuario
-                        </button>
-                    </form>
+                <div class="space-y-3 text-xs">
+                    <div class="bg-indigo-950/40 border border-indigo-500/30 p-3 rounded-xl text-white">
+                        <h3 class="font-bold text-sm">Resumen General Lara (${cicloActual}ma Consulta)</h3>
+                    </div>
 
-                    <div class="space-y-2">
-                        <div class="font-bold text-slate-300">Usuarios Activos</div>
-                        ${listaHtml}
+                    <div class="grid grid-cols-2 gap-2 text-center">
+                        <div class="bg-slate-900 p-3 rounded-xl border border-slate-800">
+                            <span class="text-slate-400 block text-[10px]">TOTAL PROYECTOS</span>
+                            <span class="text-xl font-bold text-indigo-400">${total}</span>
+                        </div>
+                        <div class="bg-slate-900 p-3 rounded-xl border border-slate-800">
+                            <span class="text-slate-400 block text-[10px]">CULMINADOS</span>
+                            <span class="text-xl font-bold text-emerald-400">${culm}</span>
+                        </div>
+                        <div class="bg-slate-900 p-3 rounded-xl border border-slate-800">
+                            <span class="text-slate-400 block text-[10px]">EN EJECUCIÓN</span>
+                            <span class="text-xl font-bold text-amber-400">${ejec}</span>
+                        </div>
+                        <div class="bg-slate-900 p-3 rounded-xl border border-slate-800">
+                            <span class="text-slate-400 block text-[10px]">CON NUDO CRÍTICO</span>
+                            <span class="text-xl font-bold text-red-400">${nudos}</span>
+                        </div>
                     </div>
                 </div>
             `;
             panel.classList.remove('translate-x-full');
         }
 
-        function crearNuevoUsuario(event) {
-            event.preventDefault();
-            const user = document.getElementById('nuevo-user').value.trim();
-            const pass = document.getElementById('nuevo-pass').value.trim();
-            const rol = document.getElementById('nuevo-rol').value;
+        // GENERADOR IA CON DETECCIÓN DE NUDOS CRÍTICOS
+        function abrirGeneradorReportesIA() {
+            document.getElementById('titulo-panel-lateral').innerText = "Reportes e Alertas IA";
+            const panel = document.getElementById('ficha-comuna');
 
-            if (user && pass) {
-                usuariosSistema.push({ usuario: user, pass: pass, rol: rol, esCreadora: false });
-                alert(`¡Usuario "${user}" creado exitosamente!`);
+            document.getElementById('contenido-ficha').innerHTML = `
+                <div class="space-y-3 text-xs">
+                    <button onclick="generarReporteNudosIA()" class="w-full bg-red-600 hover:bg-red-500 text-white font-bold py-2.5 rounded-xl cursor-pointer">
+                        🚨 Generar Reporte de Nudos Críticos
+                    </button>
+                    <textarea id="texto-reporte-ia" readonly class="w-full h-64 bg-slate-900 border border-slate-800 rounded-xl p-3 font-mono text-[11px] text-slate-200 outline-none"></textarea>
+                </div>
+            `;
+            panel.classList.remove('translate-x-full');
+        }
+
+        function generarReporteNudosIA() {
+            let dataset = comunasData.filter(c => String(c.consulta || "7") === String(cicloActual));
+            let criticos = dataset.filter(d => d.nudo_critico && !d.nudo_critico.includes("Sin reporte"));
+
+            let rep = `==================================================
+  ALERTA TÁCTICA DE NUDOS CRÍTICOS - CFG LARA
+==================================================
+Proyectos Afectados: ${criticos.length}
+--------------------------------------------------
+
+${criticos.map((c, i) => `${i+1}. [${c.municipio}] ${c.nombre}
+   • Proyecto: ${c.proyectos}
+   • Ej. Física: ${c.ejecucion_fisica}% | Financiera: ${c.ejecucion_financiera}%
+   • ALERTA / NUDO: ${c.nudo_critico}`).join('\n\n')}
+==================================================`;
+
+            document.getElementById('texto-reporte-ia').value = rep;
+        }
+
+        // GESTIÓN DE USUARIOS
+        function abrirGestionUsuarios() {
+            document.getElementById('titulo-panel-lateral').innerText = "Gestión de Usuarios";
+            const panel = document.getElementById('ficha-comuna');
+
+            let html = usuariosSistema.map(u => `
+                <div class="bg-slate-900 p-2.5 rounded-xl border border-slate-800 flex justify-between text-xs">
+                    <div><b>${u.usuario}</b><br><span class="text-slate-400 text-[10px]">${u.rol}</span></div>
+                    <span class="text-indigo-400 font-bold">Activo</span>
+                </div>
+            `).join('');
+
+            document.getElementById('contenido-ficha').innerHTML = `
+                <div class="space-y-3 text-xs">
+                    <form onsubmit="crearUser(event)" class="bg-slate-900 p-3 rounded-xl border border-slate-800 space-y-2">
+                        <div class="font-bold text-white">Crear Nuevo Usuario</div>
+                        <input type="text" id="nu-u" placeholder="Usuario" required class="w-full bg-slate-950 border border-slate-800 p-2 rounded text-white">
+                        <input type="password" id="nu-p" placeholder="Contraseña" required class="w-full bg-slate-950 border border-slate-800 p-2 rounded text-white">
+                        <button type="submit" class="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-2 rounded">➕ Registrar</button>
+                    </form>
+                    <div class="space-y-2">${html}</div>
+                </div>
+            `;
+            panel.classList.remove('translate-x-full');
+        }
+
+        function crearUser(e) {
+            e.preventDefault();
+            let u = document.getElementById('nu-u').value.trim();
+            let p = document.getElementById('nu-p').value.trim();
+            if (u && p) {
+                usuariosSistema.push({ usuario: u, pass: p, rol: 'Analista' });
+                alert(`Usuario ${u} creado.`);
                 abrirGestionUsuarios();
             }
         }
 
-        function filtrarPorEstatusProyecto(estatus) {
-            let datosFiltrados = comunasData.filter(c => String(c.consulta || "7") === String(cicloActual) && c.estatus_proyecto === estatus);
-            renderizarComunasEnMapa(datosFiltrados);
+        function filtrarPorEstatusProyecto(est) {
+            let dataset = comunasData.filter(c => String(c.consulta || "7") === String(cicloActual) && c.estatus_proyecto === est);
+            renderizarMapa(dataset);
         }
 
-        function restablecerMapaCompleto() {
-            filtrarPorCicloActivo();
-            if (map) map.setView([10.0678, -69.3474], 9);
-        }
-
+        function restablecerMapaCompleto() { filtrarPorCiclo(); if (map) map.setView([10.0678, -69.3474], 9); }
         function cerrarFicha() { document.getElementById('ficha-comuna').classList.add('translate-x-full'); }
         function zoomMunicipio(m) { if (m && municipiosCoordenadas[m]) map.setView([municipiosCoordenadas[m].lat, municipiosCoordenadas[m].lng], municipiosCoordenadas[m].zoom); }
-        
-        function filtrarComunas(texto) {
-            const contenedor = document.getElementById('resultados-busqueda');
-            if (!texto) { contenedor.classList.add('hidden'); return; }
-            let coincidencias = comunasData.filter(c => c.nombre.toLowerCase().includes(texto.toLowerCase()) || (c.municipio && c.municipio.toLowerCase().includes(texto.toLowerCase())));
-            if (coincidencias.length > 0) {
-                contenedor.innerHTML = coincidencias.map(c => `<div onclick="mostrarFichaComunaPorCodigo('${c.codigo}')" class="p-2 hover:bg-slate-800 cursor-pointer text-white">${c.nombre} (${c.municipio})</div>`).join('');
-                contenedor.classList.remove('hidden');
-            } else { contenedor.classList.add('hidden'); }
-        }
-
-        function mostrarFichaComunaPorCodigo(codigo) {
-            let comuna = comunasData.find(c => c.codigo === codigo);
-            if (comuna) {
-                mostrarFichaComuna(comuna);
-                if (comuna.lat && comuna.lng) map.setView([comuna.lat, comuna.lng], 13);
-            }
-        }
     </script>
 </body>
 </html>
