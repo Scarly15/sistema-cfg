@@ -137,7 +137,7 @@
 
                     <div class="space-y-2">
                         <button onclick="abrirFichaEstadistica()" class="w-full bg-slate-950 hover:bg-slate-800 border border-slate-800 text-blue-300 font-medium py-2 px-3 rounded-xl text-xs flex justify-between items-center transition-all">
-                            <span>📈 Resumen Estadístico (Estadal/Municipal)</span>
+                            <span>📈 Resumen Estadístico Desplegable</span>
                         </button>
                         <button onclick="abrirMatrizPreferencias()" class="w-full bg-slate-950 hover:bg-slate-800 border border-slate-800 text-emerald-300 font-medium py-2 px-3 rounded-xl text-xs flex justify-between items-center transition-all">
                             <span>📊 Sector de Inversión (Info)</span>
@@ -162,7 +162,7 @@
             </main>
 
             <!-- FICHA LATERAL DERECHA -->
-            <div id="ficha-comuna" class="absolute right-0 top-0 h-full w-[460px] bg-slate-950 border-l border-slate-800 shadow-2xl z-50 transform translate-x-full transition-transform duration-300 flex flex-col p-6 overflow-y-auto">
+            <div id="ficha-comuna" class="absolute right-0 top-0 h-full w-[480px] bg-slate-950 border-l border-slate-800 shadow-2xl z-50 transform translate-x-full transition-transform duration-300 flex flex-col p-6 overflow-y-auto">
                 <div class="flex items-center justify-between pb-4 border-b border-slate-800">
                     <span id="titulo-panel-lateral" class="text-xs font-semibold uppercase tracking-wider text-indigo-400">Ficha Técnica Comunal</span>
                     <button onclick="cerrarFicha()" class="text-slate-400 hover:text-white bg-slate-900 w-8 h-8 rounded-full border border-slate-700 flex items-center justify-center">✕</button>
@@ -184,6 +184,7 @@
         let marcadoresLayer = L.layerGroup();
         let usuarioActual = null;
         let chartSectoresInstance = null;
+        let pestanaActivaFicha = 'comuna';
 
         const sectoresLista = [
             "Agua Potable", "Aguas Servidas", "Electricidad", "Vialidad", 
@@ -219,40 +220,51 @@
             "Urdaneta": ["Siquisique", "Moroturo", "San Miguel", "Xaguas"]
         };
 
+        // CORRECCIÓN TERRITORIAL REALIZADA AQUÍ (Municipios y parroquias coherentes)
         const comunasRespaldo = [
             { 
                 id: "COM-001",
-                codigo: "COM-001",
+                codigo: "COM-001-IRIB",
                 nombre: "Comuna Piloto Lara", 
                 municipio: "Iribarren", 
                 parroquia: "Concepción",
+                banco_cuenta: "0102-0123-45-0000123456",
+                banco_nombre: "Banco de Venezuela",
+                rif: "J-400123456",
                 lat: 10.0600, lng: -69.3300, 
                 consejos_comunales: [
-                    { nombre: "CC La Batalla", voceria_estatus: "Vigente" },
-                    { nombre: "CC Ruiz Pineda", voceria_estatus: "Vencida" },
-                    { nombre: "CC 12 de Octubre", voceria_estatus: "Vigente" }
+                    { nombre: "CC La Batalla", voceria_estatus: "Vigente", proyectos: ["Reparación de cloacas"] },
+                    { nombre: "CC Ruiz Pineda", voceria_estatus: "Vencida", proyectos: ["Alumbrado principal"] },
+                    { nombre: "CC 12 de Octubre", voceria_estatus: "Vigente", proyectos: [] }
                 ],
                 proyectos: "Sustitución Colectores de Aguas Servidas",
+                monto_asignado: 150000.00,
+                cc_ejecutor: "CC La Batalla",
                 estatus_proyecto: "Borrador",
-                ejecucion_fisica: 0,
-                ejecucion_financiera: 0,
-                nudo_critico: "Sin reporte de nudos críticos.",
+                ejecucion_fisica: 15,
+                ejecucion_financiera: 20,
+                nudo_critico: "Falta de tubería PVC de 10 pulgadas.",
                 sector: "Aguas Servidas",
                 consulta: "7",
                 emblematico: false
             },
             { 
                 id: "COM-002",
-                codigo: "COM-002",
+                codigo: "COM-002-SIMON",
                 nombre: "Comuna El Maizal", 
                 municipio: "Simón Planas", 
                 parroquia: "Sarare",
+                banco_cuenta: "0102-0987-65-0000654321",
+                banco_nombre: "Banco Bicentenario",
+                rif: "J-400987654",
                 lat: 9.8078, lng: -69.0528, 
                 consejos_comunales: [
-                    { nombre: "CC La Miel Centro", voceria_estatus: "Vigente" },
-                    { nombre: "CC Sabana Verde", voceria_estatus: "Vigente" }
+                    { nombre: "CC La Miel Centro", voceria_estatus: "Vigente", proyectos: ["Pozo de Agua Nro 1"] },
+                    { nombre: "CC Sabana Verde", voceria_estatus: "Vigente", proyectos: [] }
                 ],
                 proyectos: "Rehabilitación de Red de Agua Potable y Estación de Bombeo",
+                monto_asignado: 250000.00,
+                cc_ejecutor: "CC La Miel Centro",
                 estatus_proyecto: "Culminado",
                 ejecucion_fisica: 100,
                 ejecucion_financiera: 100,
@@ -263,35 +275,23 @@
             },
             { 
                 id: "COM-003",
-                codigo: "COM-003",
-                nombre: "Comuna Ataroa", 
-                municipio: "Iribarren", 
-                parroquia: "Catedral",
-                lat: 10.0710, lng: -69.3200, 
-                consejos_comunales: [{ nombre: "CC Bararida", voceria_estatus: "Vigente" }],
-                proyectos: "Alumbrado Público y Transformadores Electrónicos",
+                codigo: "COM-003-JIM",
+                nombre: "Comuna Quíbor Valle Lindo", 
+                municipio: "Jiménez", 
+                parroquia: "Quíbor",
+                banco_cuenta: "0102-0444-11-0000888999",
+                banco_nombre: "Banco del Tesoro",
+                rif: "J-300444888",
+                lat: 9.9791, lng: -69.7854, 
+                consejos_comunales: [{ nombre: "CC Quíbor Centro", voceria_estatus: "Vigente", proyectos: ["Bomba de Agua"] }],
+                proyectos: "Instalación de Sistema Agrícola de Riego",
+                monto_asignado: 180000.00,
+                cc_ejecutor: "CC Quíbor Centro",
                 estatus_proyecto: "En Ejecución",
-                ejecucion_fisica: 40,
+                ejecucion_fisica: 60,
                 ejecucion_financiera: 50,
-                nudo_critico: "Falta de transformador de 50KVA para el sector 2.",
-                sector: "Electricidad",
-                consulta: "7",
-                emblematico: true
-            },
-            { 
-                id: "COM-004",
-                codigo: "COM-004",
-                nombre: "Comuna Carora Ancestral", 
-                municipio: "Torres", 
-                parroquia: "Trinidad Samuel",
-                lat: 10.1211, lng: -70.0801, 
-                consejos_comunales: [{ nombre: "CC Torrellas", voceria_estatus: "Vigente" }],
-                proyectos: "Reparación de Bomba Principal de Agua",
-                estatus_proyecto: "Pre-evaluación",
-                ejecucion_fisica: 10,
-                ejecucion_financiera: 0,
-                nudo_critico: "Revisión técnica de motor eléctrico pendiente.",
-                sector: "Agua Potable",
+                nudo_critico: "Retraso en la entrega de mangueras de alta presión.",
+                sector: "Productivo",
                 consulta: "7",
                 emblematico: false
             }
@@ -353,6 +353,12 @@
                     id: String(item.id || item.id_comuna || item.codigo),
                     municipio: typeof item.municipio === 'number' ? (municipiosMap[item.municipio] || `Municipio ${item.municipio}`) : (item.municipio || "Iribarren"),
                     parroquia: item.parroquia || "Concepción",
+                    codigo: item.codigo || "COM-CFG",
+                    rif: item.rif || "J-000000000",
+                    banco_cuenta: item.banco_cuenta || "0102-0000-00-0000000000",
+                    banco_nombre: item.banco_nombre || "Banco de Venezuela",
+                    monto_asignado: item.monto_asignado || 0,
+                    cc_ejecutor: item.cc_ejecutor || "No Especificado",
                     estatus_proyecto: item.estatus_proyecto || item.estatus || "Borrador",
                     ejecucion_fisica: item.ejecucion_fisica || 0,
                     ejecucion_financiera: item.ejecucion_financiera || 0,
@@ -467,221 +473,172 @@
             document.getElementById('input-busqueda-global').value = '';
         }
 
-        function filtrarProyectosEmblematicos() {
-            let dataset = comunasData.filter(c => String(c.consulta || "7") === String(cicloActual) && c.emblematico === true);
-            renderizarMapa(dataset);
-
-            document.getElementById('titulo-panel-lateral').innerText = "⭐ Proyectos Emblemáticos";
-            const panel = document.getElementById('ficha-comuna');
-
-            let htmlProyectos = dataset.map(p => {
-                let pid = obtenerId(p);
-                return `
-                <div onclick="seleccionarResultadoBusqueda('${pid}')" class="bg-slate-900 p-3 rounded-xl border border-amber-500/30 space-y-1 cursor-pointer hover:border-amber-400 transition-all">
-                    <div class="flex justify-between items-center">
-                        <span class="font-bold text-amber-300 text-xs">⭐ ${p.nombre}</span>
-                        <span class="text-[10px] text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded">${p.municipio}</span>
-                    </div>
-                    <p class="text-xs text-slate-300 font-medium">${p.proyectos || 'Sin nombre de proyecto'}</p>
-                    <div class="flex justify-between text-[10px] text-slate-400 pt-1">
-                        <span>Sector: <b class="text-indigo-300">${p.sector || 'General'}</b></span>
-                        <span>Físico: <b class="text-emerald-400">${p.ejecucion_fisica}%</b></span>
-                    </div>
-                </div>
-            `;}).join('');
-
-            document.getElementById('contenido-ficha').innerHTML = `
-                <div class="space-y-3">
-                    <div class="bg-amber-950/40 border border-amber-500/40 p-3 rounded-xl flex justify-between items-center">
-                        <span class="text-xs font-bold text-amber-300">Total Emblemáticos:</span>
-                        <span class="text-sm font-bold text-slate-950 bg-amber-400 px-2.5 py-0.5 rounded-lg">${dataset.length}</span>
-                    </div>
-                    <div class="space-y-2 max-h-[calc(100vh-180px)] overflow-y-auto">
-                        ${htmlProyectos || '<p class="text-xs text-slate-500 italic p-2">No hay proyectos marcados como emblemáticos en este ciclo.</p>'}
-                    </div>
-                </div>
-            `;
-            panel.classList.remove('translate-x-full');
-        }
-
-        function filtrarPorEstatusProyecto(est) {
-            let dataset = comunasData.filter(c => String(c.consulta || "7") === String(cicloActual) && c.estatus_proyecto === est);
-            renderizarMapa(dataset);
-
-            document.getElementById('titulo-panel-lateral').innerText = `Proyectos: ${est}`;
-            const panel = document.getElementById('ficha-comuna');
-
-            let htmlProyectos = dataset.map(p => {
-                let pid = obtenerId(p);
-                return `
-                <div onclick="seleccionarResultadoBusqueda('${pid}')" class="bg-slate-900 p-3 rounded-xl border border-slate-800 space-y-1 cursor-pointer hover:border-indigo-500 transition-all">
-                    <div class="flex justify-between items-center">
-                        <span class="font-bold text-white text-xs">${p.emblematico ? '⭐ ' : ''}${p.nombre}</span>
-                        <span class="text-[10px] text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded">${p.municipio}</span>
-                    </div>
-                    <p class="text-xs text-slate-300 font-medium">${p.proyectos || 'Sin nombre de proyecto'}</p>
-                    <div class="flex justify-between text-[10px] text-slate-400 pt-1">
-                        <span>Físico: <b class="text-emerald-400">${p.ejecucion_fisica}%</b></span>
-                        <span>Financiero: <b class="text-blue-400">${p.ejecucion_financiera}%</b></span>
-                    </div>
-                </div>
-            `;}).join('');
-
-            document.getElementById('contenido-ficha').innerHTML = `
-                <div class="space-y-3">
-                    <div class="bg-indigo-950/40 border border-indigo-500/30 p-3 rounded-xl flex justify-between items-center">
-                        <span class="text-xs font-bold text-indigo-300">Total en ${est}:</span>
-                        <span class="text-sm font-bold text-white bg-indigo-600 px-2.5 py-0.5 rounded-lg">${dataset.length}</span>
-                    </div>
-                    <div class="space-y-2 max-h-[calc(100vh-180px)] overflow-y-auto">
-                        ${htmlProyectos || '<p class="text-xs text-slate-500 italic p-2">No existen proyectos registrados en este estatus.</p>'}
-                    </div>
-                </div>
-            `;
-            panel.classList.remove('translate-x-full');
-        }
-
-        // FICHA TÉCNICA DETALLADA CON TODAS LAS CORRECCIONES DE ACCIÓN Y REGISTRO DE NUDOS CRÍTICOS
-        function mostrarFichaComuna(c) {
-            document.getElementById('titulo-panel-lateral').innerText = "Ficha Técnica Comunal";
+        // FICHA CON DIVISIÓN EN BOTONES / PESTAÑAS (COMUNAS DEL ESTADO / PROYECTOS CARGADOS)
+        function mostrarFichaComuna(c, pestana = 'comuna') {
+            pestanaActivaFicha = pestana;
+            document.getElementById('titulo-panel-lateral').innerText = "Ficha Técnica Integral";
             const panel = document.getElementById('ficha-comuna');
 
             let cid = obtenerId(c);
             let ccs = Array.isArray(c.consejos_comunales) ? c.consejos_comunales : [];
+
+            // Generación de lista de Consejos Comunales para la Pestaña Comuna
             let ccsHtml = ccs.map((cc, i) => {
                 let nombreCC = typeof cc === 'string' ? cc : cc.nombre;
                 let voceria = cc.voceria_estatus || "Vigente";
+                let proys = cc.proyectos && cc.proyectos.length > 0 ? cc.proyectos.join(', ') : 'Sin proyectos individuales';
                 let badgeCol = voceria === 'Vigente' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-red-500/20 text-red-400';
                 
-                return `<div class="bg-slate-900 p-2 rounded border border-slate-800 text-xs flex justify-between items-center">
-                    <div><span class="text-white font-medium">${i+1}. ${nombreCC}</span></div>
-                    <span class="text-[9px] ${badgeCol} px-2 py-0.5 rounded font-bold">${voceria}</span>
+                return `
+                <div class="bg-slate-900 p-2.5 rounded-lg border border-slate-800 text-xs space-y-1">
+                    <div class="flex justify-between items-center">
+                        <span class="text-white font-bold">${i+1}. ${nombreCC}</span>
+                        <span class="text-[9px] ${badgeCol} px-2 py-0.5 rounded font-bold">${voceria}</span>
+                    </div>
+                    <p class="text-[10px] text-slate-400">Proyectos Afiliados: <b class="text-slate-300">${proys}</b></p>
                 </div>`;
             }).join('');
 
-            let esAdmin = usuarioActual && (usuarioActual.rol === 'Administrador' || usuarioActual.rol === 'Creadora');
-            let esCreadora = usuarioActual && (usuarioActual.usuario === 'scarly_creadora' || usuarioActual.rol === 'Creadora');
-
-            let opcionesSectores = sectoresLista.map(sec => 
-                `<option value="${sec}" ${(c.sector || 'General') === sec ? 'selected' : ''}>${sec}</option>`
+            // Opciones de Estatus de Proyecto
+            const estatusOpciones = ["Borrador", "Pre-evaluación", "En Evaluación", "En Ejecución", "Culminado"];
+            let comboEstatusHtml = estatusOpciones.map(est => 
+                `<option value="${est}" ${c.estatus_proyecto === est ? 'selected' : ''}>${est}</option>`
             ).join('');
 
-            document.getElementById('contenido-ficha').innerHTML = `
-                <div class="flex justify-between items-start">
-                    <div>
-                        <h2 class="text-base font-bold text-white mb-1 flex items-center gap-1">
-                            ${c.emblematico ? '⭐ ' : ''}${c.nombre}
-                        </h2>
-                        <span class="text-xs bg-indigo-500/10 text-indigo-400 px-2 py-0.5 rounded border border-indigo-500/20">Código: ${c.codigo || 'COM-CFG'}</span>
-                    </div>
-                    <button onclick="toggleEmblematico('${cid}')" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${c.emblematico ? 'bg-amber-500 text-slate-950 hover:bg-amber-400' : 'bg-slate-800 text-amber-300 border border-amber-500/30 hover:bg-slate-700'}">
-                        ${c.emblematico ? '⭐ Emblemático' : '☆ Marcar Emblemático'}
+            let htmlTabsNav = `
+                <div class="flex border-b border-slate-800 mb-4 bg-slate-900 p-1 rounded-xl">
+                    <button onclick="mostrarFichaComuna(comunasData.find(x=>obtenerId(x)==='${cid}'), 'comuna')" class="flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${pestana === 'comuna' ? 'bg-indigo-600 text-white shadow' : 'text-slate-400 hover:text-white'}">
+                        🏛️ Comunas del Estado
+                    </button>
+                    <button onclick="mostrarFichaComuna(comunasData.find(x=>obtenerId(x)==='${cid}'), 'proyecto')" class="flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${pestana === 'proyecto' ? 'bg-indigo-600 text-white shadow' : 'text-slate-400 hover:text-white'}">
+                        📋 Proyectos Cargados
                     </button>
                 </div>
-
-                <div class="bg-slate-900 p-3 rounded-xl border border-slate-800 space-y-1 text-xs">
-                    <div class="flex justify-between"><span class="text-slate-400">Municipio:</span><span class="font-bold text-indigo-300">${c.municipio}</span></div>
-                    <div class="flex justify-between"><span class="text-slate-400">Parroquia:</span><span class="text-white">${c.parroquia || 'N/D'}</span></div>
-                </div>
-
-                <div class="bg-slate-900 p-3 rounded-xl border border-slate-800 space-y-1 text-xs">
-                    <label class="block font-bold text-emerald-400 text-[11px] uppercase">🏷️ Sector de Inversión (Analista)</label>
-                    <div class="flex gap-2">
-                        <select id="select-sector-ficha" class="flex-1 bg-slate-950 border border-slate-800 rounded px-2 py-1 text-xs text-white outline-none focus:border-indigo-500">
-                            ${opcionesSectores}
-                        </select>
-                        <button onclick="guardarSectorInversion('${cid}')" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3 py-1 rounded-lg text-xs">Guardar</button>
-                    </div>
-                </div>
-
-                <div class="bg-slate-900 p-3 rounded-xl border border-slate-800 space-y-2 text-xs">
-                    <div class="font-bold text-amber-400 flex justify-between">
-                        <span>🏛️ Proyecto Cargado</span>
-                        <span class="bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded">${c.estatus_proyecto}</span>
-                    </div>
-                    <p class="text-white font-medium">${c.proyectos || 'Sin proyecto asignado'}</p>
-                    
-                    <div class="pt-2 space-y-2 border-t border-slate-800">
-                        <div>
-                            <div class="flex justify-between text-[10px] mb-1">
-                                <span class="text-slate-400">Ejecución Física:</span>
-                                <span class="text-emerald-400 font-bold">${c.ejecucion_fisica}%</span>
-                            </div>
-                            <div class="w-full bg-slate-950 h-2 rounded-full overflow-hidden">
-                                <div class="bg-emerald-500 h-full" style="width: ${c.ejecucion_fisica}%"></div>
-                            </div>
-                        </div>
-                        <div>
-                            <div class="flex justify-between text-[10px] mb-1">
-                                <span class="text-slate-400">Ejecución Financiera:</span>
-                                <span class="text-blue-400 font-bold">${c.ejecucion_financiera}%</span>
-                            </div>
-                            <div class="w-full bg-slate-950 h-2 rounded-full overflow-hidden">
-                                <div class="bg-blue-500 h-full" style="width: ${c.ejecucion_financiera}%"></div>
-                            </div>
-                        </div>
-                    </div>
-
-                    ${esCreadora || esAdmin ? `
-                        <div class="pt-2 border-t border-slate-800 bg-slate-950/60 p-2.5 rounded-lg space-y-2">
-                            <span class="text-[10px] text-indigo-300 font-bold uppercase block">👑 Edición Manual de Avance (Ing. Scarly Macareo)</span>
-                            <div class="grid grid-cols-2 gap-2">
-                                <div>
-                                    <label class="text-[9px] text-slate-400">Ejec. Física (%)</label>
-                                    <input type="number" id="input-ejec-fisica" min="0" max="100" value="${c.ejecucion_fisica}" class="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1 text-xs text-white">
-                                </div>
-                                <div>
-                                    <label class="text-[9px] text-slate-400">Ejec. Financiera (%)</label>
-                                    <input type="number" id="input-ejec-financiera" min="0" max="100" value="${c.ejecucion_financiera}" class="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1 text-xs text-white">
-                                </div>
-                            </div>
-                            <button onclick="guardarEjecucionManual('${cid}')" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-1 rounded text-xs transition-all">
-                                💾 Actualizar Avance Físico y Financiero
-                            </button>
-                        </div>
-                    ` : ''}
-
-                    <!-- REGISTRO Y EDICIÓN DE NUDOS CRÍTICOS -->
-                    <div class="pt-2 border-t border-slate-800 space-y-1.5">
-                        <div class="flex justify-between items-center">
-                            <span class="text-[10px] text-red-400 font-bold uppercase">⚠️ Nudo Crítico / Observación:</span>
-                            <button onclick="abrirFormularioNudoCritico('${cid}')" class="text-[10px] bg-red-600/20 hover:bg-red-600/40 text-red-300 border border-red-500/30 px-2 py-0.5 rounded font-bold">✏️ Registrar / Editar</button>
-                        </div>
-                        <p id="texto-nudo-critico" class="text-[11px] text-slate-300 italic bg-slate-950 p-2 rounded border border-slate-800/80">${c.nudo_critico || 'Sin reporte de nudos críticos.'}</p>
-                    </div>
-                </div>
-
-                <div class="bg-slate-900 p-3 rounded-xl border border-slate-800 space-y-2 text-xs">
-                    <div class="flex justify-between items-center">
-                        <span class="font-bold text-indigo-300">👥 Consejos Comunales (${ccs.length}/9)</span>
-                        <button onclick="abrirModalEditarCC('${cid}')" class="text-[10px] bg-indigo-600 hover:bg-indigo-500 text-white px-2 py-1 rounded font-bold">✏️ Registrar / Editar CCs</button>
-                    </div>
-                    <div class="space-y-1 max-h-36 overflow-y-auto">${ccsHtml || '<p class="text-slate-500 italic">No hay consejos comunales registrados.</p>'}</div>
-                </div>
             `;
+
+            let cuerpoFicha = '';
+
+            if (pestana === 'comuna') {
+                cuerpoFicha = `
+                    <div class="space-y-3 text-xs">
+                        <div class="bg-slate-900 p-3.5 rounded-xl border border-slate-800 space-y-2">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <h3 class="text-sm font-bold text-white">${c.nombre}</h3>
+                                    <span class="text-[10px] text-indigo-400">Código: <b>${c.codigo || 'S/C'}</b></span>
+                                </div>
+                                <span class="bg-indigo-500/10 border border-indigo-500/30 text-indigo-300 px-2.5 py-1 rounded-lg text-[10px] font-bold">${c.municipio}</span>
+                            </div>
+                            <div class="text-slate-400">Parroquia: <b class="text-slate-200">${c.parroquia}</b></div>
+                        </div>
+
+                        <div class="bg-slate-900 p-3.5 rounded-xl border border-slate-800 space-y-2">
+                            <span class="font-bold text-amber-400 block text-[11px] uppercase">🏦 Datos Bancarios y Fiscales</span>
+                            <div class="space-y-1 text-slate-300">
+                                <div class="flex justify-between"><span>RIF Comunal:</span><b class="text-white">${c.rif || 'J-000000000'}</b></div>
+                                <div class="flex justify-between"><span>Banco:</span><b class="text-white">${c.banco_nombre || 'Banco de Venezuela'}</b></div>
+                                <div class="flex justify-between"><span>Cuenta Bancaria:</span><b class="text-indigo-300 font-mono">${c.banco_cuenta || 'N/D'}</b></div>
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-900 p-3.5 rounded-xl border border-slate-800 space-y-2">
+                            <div class="flex justify-between items-center">
+                                <span class="font-bold text-emerald-400 text-[11px] uppercase">👥 Consejos Comunales (${ccs.length})</span>
+                                <button onclick="abrirModalEditarCC('${cid}')" class="text-[10px] bg-indigo-600 hover:bg-indigo-500 text-white px-2 py-0.5 rounded font-bold">✏️ Editar CCs</button>
+                            </div>
+                            <div class="space-y-2 max-h-48 overflow-y-auto pr-1">${ccsHtml || '<p class="text-slate-500 italic">No hay consejos comunales cargados.</p>'}</div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                cuerpoFicha = `
+                    <div class="space-y-3 text-xs">
+                        <div class="bg-slate-900 p-3.5 rounded-xl border border-slate-800 space-y-2">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <span class="text-[10px] text-amber-400 uppercase font-bold">Consulta Popular N° ${c.consulta || cicloActual}</span>
+                                    <h3 class="text-sm font-bold text-white mt-0.5">${c.proyectos || 'Sin Nombre de Proyecto'}</h3>
+                                </div>
+                                <button onclick="toggleEmblematico('${cid}')" class="px-2.5 py-1 rounded-lg text-[10px] font-bold ${c.emblematico ? 'bg-amber-500 text-slate-950' : 'bg-slate-800 text-amber-300 border border-amber-500/30'}">
+                                    ${c.emblematico ? '⭐ Emblemático' : '☆ Marcar Emblemático'}
+                                </button>
+                            </div>
+                            <div class="pt-2 border-t border-slate-800 flex justify-between items-center text-slate-300">
+                                <span>Monto Asignado:</span>
+                                <b class="text-emerald-400 text-sm font-mono">$${(c.monto_asignado || 0).toLocaleString()}</b>
+                            </div>
+                            <div class="flex justify-between items-center text-slate-300">
+                                <span>CC Ejecutor:</span>
+                                <b class="text-indigo-300">${c.cc_ejecutor || 'Consejo Comunal Principal'}</b>
+                            </div>
+                        </div>
+
+                        <!-- MODIFICAR ESTATUS DE PROYECTO -->
+                        <div class="bg-slate-900 p-3.5 rounded-xl border border-indigo-500/30 space-y-2">
+                            <label class="block font-bold text-indigo-300 text-[11px] uppercase">⚡ Cambiar Estatus del Proyecto</label>
+                            <div class="flex gap-2">
+                                <select id="select-cambio-estatus" class="flex-1 bg-slate-950 border border-slate-800 rounded px-2.5 py-1.5 text-xs text-white outline-none focus:border-indigo-500">
+                                    ${comboEstatusHtml}
+                                </select>
+                                <button onclick="guardarEstatusProyecto('${cid}')" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-3 py-1.5 rounded-lg text-xs">Guardar Estatus</button>
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-900 p-3.5 rounded-xl border border-slate-800 space-y-2">
+                            <span class="font-bold text-blue-400 block text-[11px] uppercase">📊 Ejecución Física y Financiera</span>
+                            <div class="space-y-2">
+                                <div>
+                                    <div class="flex justify-between text-[10px] mb-1"><span class="text-slate-400">Ejecución Física:</span><b class="text-emerald-400">${c.ejecucion_fisica}%</b></div>
+                                    <div class="w-full bg-slate-950 h-2 rounded-full overflow-hidden"><div class="bg-emerald-500 h-full" style="width: ${c.ejecucion_fisica}%"></div></div>
+                                </div>
+                                <div>
+                                    <div class="flex justify-between text-[10px] mb-1"><span class="text-slate-400">Ejecución Financiera:</span><b class="text-blue-400">${c.ejecucion_financiera}%</b></div>
+                                    <div class="w-full bg-slate-950 h-2 rounded-full overflow-hidden"><div class="bg-blue-500 h-full" style="width: ${c.ejecucion_financiera}%"></div></div>
+                                </div>
+                            </div>
+
+                            <div class="pt-2 border-t border-slate-800 grid grid-cols-2 gap-2 mt-2">
+                                <div><label class="text-[9px] text-slate-400">Actualizar % Físico</label><input type="number" id="input-ejec-fisica" min="0" max="100" value="${c.ejecucion_fisica}" class="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1 text-white"></div>
+                                <div><label class="text-[9px] text-slate-400">Actualizar % Financiero</label><input type="number" id="input-ejec-financiera" min="0" max="100" value="${c.ejecucion_financiera}" class="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1 text-white"></div>
+                            </div>
+                            <button onclick="guardarEjecucionManual('${cid}')" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-1.5 rounded text-xs mt-1">💾 Actualizar Avance</button>
+                        </div>
+
+                        <div class="bg-slate-900 p-3.5 rounded-xl border border-slate-800 space-y-1.5">
+                            <div class="flex justify-between items-center">
+                                <span class="text-[10px] text-red-400 font-bold uppercase">⚠️ Nudo Crítico / Obstáculo</span>
+                                <button onclick="abrirFormularioNudoCritico('${cid}')" class="text-[10px] bg-red-600/20 text-red-300 border border-red-500/30 px-2 py-0.5 rounded font-bold">✏️ Editar Nudo</button>
+                            </div>
+                            <p class="text-[11px] text-slate-300 italic bg-slate-950 p-2.5 rounded border border-slate-800/80">${c.nudo_critico || 'Sin reporte de nudos críticos.'}</p>
+                        </div>
+                    </div>
+                `;
+            }
+
+            document.getElementById('contenido-ficha').innerHTML = htmlTabsNav + cuerpoFicha;
             panel.classList.remove('translate-x-full');
         }
 
-        // FUNCIONES DE EDICIÓN Y REGISTRO CORREGIDAS CON ID DE COMUNA
+        // FUNCIONALIDAD PARA GUARDAR ESTATUS MODIFICADO
+        function guardarEstatusProyecto(idComuna) {
+            let c = comunasData.find(item => obtenerId(item) === String(idComuna));
+            if (!c) return;
+
+            let nuevoEstatus = document.getElementById('select-cambio-estatus').value;
+            c.estatus_proyecto = nuevoEstatus;
+            filtrarPorCiclo();
+            mostrarFichaComuna(c, 'proyecto');
+            alert(`Estatus del proyecto cambiado exitosamente a: "${nuevoEstatus}".`);
+        }
+
         function toggleEmblematico(idComuna) {
             let c = comunasData.find(item => obtenerId(item) === String(idComuna));
             if (!c) return;
 
             c.emblematico = !c.emblematico;
             filtrarPorCiclo();
-            mostrarFichaComuna(c);
+            mostrarFichaComuna(c, pestanaActivaFicha);
             alert(`Proyecto ${c.emblematico ? 'marcado como EMBLEMÁTICO ⭐' : 'desmarcado de emblemáticos'}.`);
-        }
-
-        function guardarSectorInversion(idComuna) {
-            let c = comunasData.find(item => obtenerId(item) === String(idComuna));
-            if (!c) return;
-
-            let nuevoSector = document.getElementById('select-sector-ficha').value;
-            c.sector = nuevoSector;
-            filtrarPorCiclo();
-            mostrarFichaComuna(c);
-            alert(`Sector de inversión actualizado a: "${nuevoSector}".`);
         }
 
         function guardarEjecucionManual(idComuna) {
@@ -695,11 +652,10 @@
             c.ejecucion_financiera = Math.min(100, Math.max(0, fin));
 
             filtrarPorCiclo();
-            mostrarFichaComuna(c);
-            alert(`Ejecución física (${c.ejecucion_fisica}%) y financiera (${c.ejecucion_financiera}%) actualizada manualmente.`);
+            mostrarFichaComuna(c, 'proyecto');
+            alert(`Ejecución física (${c.ejecucion_fisica}%) y financiera (${c.ejecucion_financiera}%) actualizada.`);
         }
 
-        // NUEVA FUNCIONALIDAD: FORMULARIO DE NUDO CRÍTICO
         function abrirFormularioNudoCritico(idComuna) {
             let c = comunasData.find(item => obtenerId(item) === String(idComuna));
             if (!c) return;
@@ -714,7 +670,7 @@
                     </div>
                     <div class="flex gap-2">
                         <button type="submit" class="flex-1 bg-red-600 hover:bg-red-500 text-white font-bold py-2 rounded-lg transition-all">💾 Guardar Nudo Crítico</button>
-                        <button type="button" onclick="mostrarFichaComuna(comunasData.find(x=>obtenerId(x)==='${idComuna}'))" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-2 rounded-lg">Cancelar</button>
+                        <button type="button" onclick="mostrarFichaComuna(comunasData.find(x=>obtenerId(x)==='${idComuna}'), 'proyecto')" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-2 rounded-lg">Cancelar</button>
                     </div>
                 </form>
             `;
@@ -729,11 +685,10 @@
             c.nudo_critico = texto || "Sin reporte de nudos críticos.";
 
             filtrarPorCiclo();
-            mostrarFichaComuna(c);
+            mostrarFichaComuna(c, 'proyecto');
             alert("Nudo crítico guardado y actualizado con éxito.");
         }
 
-        // EDICIÓN Y REGISTRO DE CONSEJOS COMUNALES CORREGIDO
         function abrirModalEditarCC(idComuna) {
             let c = comunasData.find(item => obtenerId(item) === String(idComuna));
             if (!c) return;
@@ -761,7 +716,7 @@
                     <div class="space-y-2 max-h-80 overflow-y-auto pr-1">${inputsHtml}</div>
                     <div class="flex gap-2">
                         <button type="submit" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 rounded-lg">💾 Guardar Cambios</button>
-                        <button type="button" onclick="mostrarFichaComuna(comunasData.find(x=>obtenerId(x)==='${idComuna}'))" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-2 rounded-lg">Cancelar</button>
+                        <button type="button" onclick="mostrarFichaComuna(comunasData.find(x=>obtenerId(x)==='${idComuna}'), 'comuna')" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-2 rounded-lg">Cancelar</button>
                     </div>
                 </form>
             `;
@@ -776,126 +731,113 @@
             for (let i = 0; i < 9; i++) {
                 let nom = document.getElementById(`cc-nombre-${i}`).value.trim();
                 let voc = document.getElementById(`cc-voceria-${i}`).value;
-                if (nom) nuevosCCs.push({ nombre: nom, voceria_estatus: voc });
+                if (nom) nuevosCCs.push({ nombre: nom, voceria_estatus: voc, proyectos: [] });
             }
 
             c.consejos_comunales = nuevosCCs;
             filtrarPorCiclo();
-            mostrarFichaComuna(c);
-            alert("¡Consejos comunales y vocerías actualizados con éxito!");
+            mostrarFichaComuna(c, 'comuna');
+            alert("¡Consejos comunales actualizados con éxito!");
         }
 
+        // FICHA ESTADÍSTICA TOTAL CON DESPLIEGUE POR MUNICIPIO Y BOTÓN DE EXPORTAR DATA
         function abrirFichaEstadistica() {
-            document.getElementById('titulo-panel-lateral').innerText = "Ficha Estadística Interactiva";
+            document.getElementById('titulo-panel-lateral').innerText = "Ficha Estadística y Exportación";
             const panel = document.getElementById('ficha-comuna');
 
-            let municipiosOptions = Object.keys(municipiosCoordenadas).map(m => `<option value="${m}">${m}</option>`).join('');
+            let dataset = comunasData.filter(c => String(c.consulta || "7") === String(cicloActual));
+            let total = dataset.length;
+
+            let municipiosContadores = {};
+            Object.keys(municipiosCoordenadas).forEach(m => {
+                municipiosContadores[m] = dataset.filter(c => c.municipio === m);
+            });
+
+            let listaMunicipiosHtml = Object.keys(municipiosContadores).map(m => {
+                let listProys = municipiosContadores[m];
+                let proysHtml = listProys.map(p => {
+                    let pid = obtenerId(p);
+                    return `
+                    <div onclick="seleccionarResultadoBusqueda('${pid}')" class="bg-slate-950 p-2 rounded border border-slate-800 hover:border-indigo-500 cursor-pointer text-xs space-y-0.5">
+                        <div class="flex justify-between font-bold text-white">
+                            <span>${p.nombre}</span>
+                            <span class="text-[10px] text-amber-400">${p.estatus_proyecto}</span>
+                        </div>
+                        <p class="text-[11px] text-slate-300">${p.proyectos}</p>
+                    </div>`;
+                }).join('');
+
+                return `
+                <div class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
+                    <button onclick="toggleDesgloseMunicipio('${m}')" class="w-full p-3 flex justify-between items-center hover:bg-slate-800/80 transition-all text-xs font-bold text-slate-200">
+                        <span class="flex items-center gap-2">📍 ${m}</span>
+                        <span class="bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 px-2.5 py-0.5 rounded-lg text-[10px]">${listProys.length} Proyectos</span>
+                    </button>
+                    <div id="desglose-mun-${m}" class="hidden p-2.5 bg-slate-950/50 border-t border-slate-800 space-y-2">
+                        ${proysHtml || '<p class="text-slate-500 text-[10px] italic">No hay proyectos asignados en este municipio.</p>'}
+                    </div>
+                </div>`;
+            }).join('');
 
             document.getElementById('contenido-ficha').innerHTML = `
-                <div class="space-y-3 text-xs">
-                    <div class="bg-slate-900 p-3 rounded-xl border border-slate-800 space-y-2">
-                        <div class="font-bold text-indigo-300 uppercase text-[10px]">Filtro Territorial (9 Municipios):</div>
-                        <div class="grid grid-cols-2 gap-2">
-                            <div>
-                                <label class="text-[10px] text-slate-400">Municipio</label>
-                                <select id="stat-municipio" onchange="actualizarParroquiasStat(); calcularEstadisticasFiltradas();" class="w-full bg-slate-950 border border-slate-800 rounded p-1.5 text-xs text-white">
-                                    <option value="TODOS">Todo el Estado</option>
-                                    ${municipiosOptions}
-                                </select>
-                            </div>
-                            <div>
-                                <label class="text-[10px] text-slate-400">Parroquia</label>
-                                <select id="stat-parroquia" onchange="calcularEstadisticasFiltradas();" class="w-full bg-slate-950 border border-slate-800 rounded p-1.5 text-xs text-white">
-                                    <option value="TODOS">Todas las Parroquias</option>
-                                </select>
-                            </div>
+                <div class="space-y-4 text-xs">
+                    <div class="bg-indigo-950/40 border border-indigo-500/30 p-3.5 rounded-xl flex justify-between items-center">
+                        <div>
+                            <span class="text-[10px] text-indigo-400 uppercase font-bold">Total Proyectos Estado Lara</span>
+                            <h2 class="text-xl font-bold text-white">${total} Proyectos</h2>
                         </div>
+                        <button onclick="exportarInformacionExcel()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3 py-2 rounded-xl text-xs flex items-center gap-1 shadow transition-all">
+                            📥 Exportar CSV
+                        </button>
                     </div>
 
-                    <div id="contenedor-tarjetas-stats" class="grid grid-cols-2 gap-2 text-center"></div>
-
-                    <div class="border-t border-slate-800 pt-3">
-                        <div id="titulo-desglose-stat" class="font-bold text-indigo-300 mb-2">Proyectos Seleccionados:</div>
-                        <div id="lista-desglose-stat" class="space-y-2 max-h-64 overflow-y-auto"></div>
+                    <div class="space-y-2">
+                        <span class="font-bold text-slate-300 block">Seleccione un Municipio para desplegar sus proyectos:</span>
+                        ${listaMunicipiosHtml}
                     </div>
                 </div>
             `;
             panel.classList.remove('translate-x-full');
-            calcularEstadisticasFiltradas();
         }
 
-        function actualizarParroquiasStat() {
-            let mun = document.getElementById('stat-municipio').value;
-            let comboP = document.getElementById('stat-parroquia');
-            comboP.innerHTML = '<option value="TODOS">Todas las Parroquias</option>';
-
-            if (mun !== 'TODOS' && parroquiasPorMunicipio[mun]) {
-                parroquiasPorMunicipio[mun].forEach(p => {
-                    comboP.innerHTML += `<option value="${p}">${p}</option>`;
-                });
-            }
+        function toggleDesgloseMunicipio(m) {
+            let el = document.getElementById(`desglose-mun-${m}`);
+            if (el) el.classList.toggle('hidden');
         }
 
-        function calcularEstadisticasFiltradas() {
-            let mun = document.getElementById('stat-municipio').value;
-            let par = document.getElementById('stat-parroquia').value;
-
+        // FUNCIONALIDAD PARA EXPORTAR INFORMACIÓN EN FORMATO CSV
+        function exportarInformacionExcel() {
             let dataset = comunasData.filter(c => String(c.consulta || "7") === String(cicloActual));
+            
+            let headers = ["ID", "Codigo Comuna", "Comuna", "Municipio", "Parroquia", "Proyecto", "Estatus", "Sector", "Ejec. Fisica (%)", "Ejec. Financiera (%)", "Monto Asignado", "RIF", "Banco", "Cuenta"];
+            let rows = dataset.map(c => [
+                `"${c.id || ''}"`,
+                `"${c.codigo || ''}"`,
+                `"${c.nombre || ''}"`,
+                `"${c.municipio || ''}"`,
+                `"${c.parroquia || ''}"`,
+                `"${(c.proyectos || '').replace(/"/g, '""')}"`,
+                `"${c.estatus_proyecto || ''}"`,
+                `"${c.sector || ''}"`,
+                `"${c.ejecucion_fisica || 0}"`,
+                `"${c.ejecucion_financiera || 0}"`,
+                `"${c.monto_asignado || 0}"`,
+                `"${c.rif || ''}"`,
+                `"${c.banco_nombre || ''}"`,
+                `"${c.banco_cuenta || ''}"`
+            ]);
 
-            if (mun !== 'TODOS') dataset = dataset.filter(c => c.municipio === mun);
-            if (par !== 'TODOS') dataset = dataset.filter(c => c.parroquia === par);
+            let csvContent = "data:text/csv;charset=utf-8,\uFEFF" 
+                + headers.join(",") + "\n"
+                + rows.map(e => e.join(",")).join("\n");
 
-            let total = dataset.length;
-            let ejec = dataset.filter(d => d.estatus_proyecto === 'En Ejecución').length;
-            let culm = dataset.filter(d => d.estatus_proyecto === 'Culminado').length;
-            let nudos = dataset.filter(d => d.nudo_critico && !d.nudo_critico.includes("Sin reporte")).length;
-
-            document.getElementById('contenedor-tarjetas-stats').innerHTML = `
-                <div onclick="mostrarDesgloseStat('TODOS')" class="bg-slate-900 hover:bg-slate-800 border border-slate-800 p-3 rounded-xl cursor-pointer transition-all">
-                    <span class="text-slate-400 block text-[10px]">TOTAL PROYECTOS</span>
-                    <span class="text-xl font-bold text-indigo-400">${total}</span>
-                </div>
-                <div onclick="mostrarDesgloseStat('Culminado')" class="bg-slate-900 hover:bg-slate-800 border border-slate-800 p-3 rounded-xl cursor-pointer transition-all">
-                    <span class="text-slate-400 block text-[10px]">CULMINADOS</span>
-                    <span class="text-xl font-bold text-emerald-400">${culm}</span>
-                </div>
-                <div onclick="mostrarDesgloseStat('En Ejecución')" class="bg-slate-900 hover:bg-slate-800 border border-slate-800 p-3 rounded-xl cursor-pointer transition-all">
-                    <span class="text-slate-400 block text-[10px]">EN EJECUCIÓN</span>
-                    <span class="text-xl font-bold text-amber-400">${ejec}</span>
-                </div>
-                <div onclick="mostrarDesgloseStat('NUDO_CRITICO')" class="bg-slate-900 hover:bg-slate-800 border border-red-500/30 p-3 rounded-xl cursor-pointer transition-all bg-red-950/10">
-                    <span class="text-red-400 block text-[10px] font-bold">⚠️ NUDOS CRÍTICOS</span>
-                    <span class="text-xl font-bold text-red-400">${nudos}</span>
-                </div>
-            `;
-            mostrarDesgloseStat('NUDO_CRITICO');
-        }
-
-        function mostrarDesgloseStat(tipo) {
-            let mun = document.getElementById('stat-municipio').value;
-            let par = document.getElementById('stat-parroquia').value;
-
-            let dataset = comunasData.filter(c => String(c.consulta || "7") === String(cicloActual));
-            if (mun !== 'TODOS') dataset = dataset.filter(c => c.municipio === mun);
-            if (par !== 'TODOS') dataset = dataset.filter(c => c.parroquia === par);
-
-            if (tipo === 'Culminado') dataset = dataset.filter(d => d.estatus_proyecto === 'Culminado');
-            else if (tipo === 'En Ejecución') dataset = dataset.filter(d => d.estatus_proyecto === 'En Ejecución');
-            else if (tipo === 'NUDO_CRITICO') dataset = dataset.filter(d => d.nudo_critico && !d.nudo_critico.includes("Sin reporte"));
-
-            document.getElementById('titulo-desglose-stat').innerText = `Proyectos en Criterio: (${tipo})`;
-
-            let html = dataset.map(p => {
-                let pid = obtenerId(p);
-                return `
-                <div onclick="seleccionarResultadoBusqueda('${pid}')" class="bg-slate-900 p-2.5 rounded-lg border border-slate-800 cursor-pointer hover:border-indigo-500 space-y-1">
-                    <div class="font-bold text-white text-xs">${p.nombre}</div>
-                    <div class="text-[11px] text-slate-300">${p.proyectos}</div>
-                    ${tipo === 'NUDO_CRITICO' ? `<div class="text-[10px] text-red-400 italic">⚠️ ${p.nudo_critico}</div>` : ''}
-                </div>
-            `;}).join('');
-
-            document.getElementById('lista-desglose-stat').innerHTML = html || '<p class="text-slate-500 italic text-[11px]">No se encontraron proyectos para este criterio.</p>';
+            let encodedUri = encodeURI(csvContent);
+            let link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `Reporte_CFG_Lara_Consulta_${cicloActual}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
 
         function abrirGeneradorReportesIA() {
@@ -1129,6 +1071,80 @@
 
             cont.innerHTML = `<div class="font-bold text-indigo-300 text-xs mb-2">Proyectos en ${sector}:</div>${html}`;
             cont.classList.remove('hidden');
+        }
+
+        function filtrarProyectosEmblematicos() {
+            let dataset = comunasData.filter(c => String(c.consulta || "7") === String(cicloActual) && c.emblematico === true);
+            renderizarMapa(dataset);
+
+            document.getElementById('titulo-panel-lateral').innerText = "⭐ Proyectos Emblemáticos";
+            const panel = document.getElementById('ficha-comuna');
+
+            let htmlProyectos = dataset.map(p => {
+                let pid = obtenerId(p);
+                return `
+                <div onclick="seleccionarResultadoBusqueda('${pid}')" class="bg-slate-900 p-3 rounded-xl border border-amber-500/30 space-y-1 cursor-pointer hover:border-amber-400 transition-all">
+                    <div class="flex justify-between items-center">
+                        <span class="font-bold text-amber-300 text-xs">⭐ ${p.nombre}</span>
+                        <span class="text-[10px] text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded">${p.municipio}</span>
+                    </div>
+                    <p class="text-xs text-slate-300 font-medium">${p.proyectos || 'Sin nombre de proyecto'}</p>
+                    <div class="flex justify-between text-[10px] text-slate-400 pt-1">
+                        <span>Sector: <b class="text-indigo-300">${p.sector || 'General'}</b></span>
+                        <span>Físico: <b class="text-emerald-400">${p.ejecucion_fisica}%</b></span>
+                    </div>
+                </div>
+            `;}).join('');
+
+            document.getElementById('contenido-ficha').innerHTML = `
+                <div class="space-y-3">
+                    <div class="bg-amber-950/40 border border-amber-500/40 p-3 rounded-xl flex justify-between items-center">
+                        <span class="text-xs font-bold text-amber-300">Total Emblemáticos:</span>
+                        <span class="text-sm font-bold text-slate-950 bg-amber-400 px-2.5 py-0.5 rounded-lg">${dataset.length}</span>
+                    </div>
+                    <div class="space-y-2 max-h-[calc(100vh-180px)] overflow-y-auto">
+                        ${htmlProyectos || '<p class="text-xs text-slate-500 italic p-2">No hay proyectos marcados como emblemáticos en este ciclo.</p>'}
+                    </div>
+                </div>
+            `;
+            panel.classList.remove('translate-x-full');
+        }
+
+        function filtrarPorEstatusProyecto(est) {
+            let dataset = comunasData.filter(c => String(c.consulta || "7") === String(cicloActual) && c.estatus_proyecto === est);
+            renderizarMapa(dataset);
+
+            document.getElementById('titulo-panel-lateral').innerText = `Proyectos: ${est}`;
+            const panel = document.getElementById('ficha-comuna');
+
+            let htmlProyectos = dataset.map(p => {
+                let pid = obtenerId(p);
+                return `
+                <div onclick="seleccionarResultadoBusqueda('${pid}')" class="bg-slate-900 p-3 rounded-xl border border-slate-800 space-y-1 cursor-pointer hover:border-indigo-500 transition-all">
+                    <div class="flex justify-between items-center">
+                        <span class="font-bold text-white text-xs">${p.emblematico ? '⭐ ' : ''}${p.nombre}</span>
+                        <span class="text-[10px] text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded">${p.municipio}</span>
+                    </div>
+                    <p class="text-xs text-slate-300 font-medium">${p.proyectos || 'Sin nombre de proyecto'}</p>
+                    <div class="flex justify-between text-[10px] text-slate-400 pt-1">
+                        <span>Físico: <b class="text-emerald-400">${p.ejecucion_fisica}%</b></span>
+                        <span>Financiero: <b class="text-blue-400">${p.ejecucion_financiera}%</b></span>
+                    </div>
+                </div>
+            `;}).join('');
+
+            document.getElementById('contenido-ficha').innerHTML = `
+                <div class="space-y-3">
+                    <div class="bg-indigo-950/40 border border-indigo-500/30 p-3 rounded-xl flex justify-between items-center">
+                        <span class="text-xs font-bold text-indigo-300">Total en ${est}:</span>
+                        <span class="text-sm font-bold text-white bg-indigo-600 px-2.5 py-0.5 rounded-lg">${dataset.length}</span>
+                    </div>
+                    <div class="space-y-2 max-h-[calc(100vh-180px)] overflow-y-auto">
+                        ${htmlProyectos || '<p class="text-xs text-slate-500 italic p-2">No existen proyectos registrados en este estatus.</p>'}
+                    </div>
+                </div>
+            `;
+            panel.classList.remove('translate-x-full');
         }
 
         function restablecerMapaCompleto() { filtrarPorCiclo(); if (map) map.setView([10.0678, -69.3474], 9); }
