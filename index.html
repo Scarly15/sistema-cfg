@@ -363,12 +363,12 @@
 
             const borrador = data.filter(c => c.estatus_proyecto === 'Borrador').length;
             const preeval = data.filter(c => c.estatus_proyecto === 'Pre-evaluación').length;
-            const eval = data.filter(c => c.estatus_proyecto === 'En Evaluación').length;
+            const evaluacion = data.filter(c => c.estatus_proyecto === 'En Evaluación').length;
             const ejec = data.filter(c => c.estatus_proyecto === 'En Ejecución').length;
 
             document.getElementById('cant-borrador').innerText = borrador;
             document.getElementById('cant-preeval').innerText = preeval;
-            document.getElementById('cant-eval').innerText = eval;
+            document.getElementById('cant-eval').innerText = evaluacion;
             document.getElementById('cant-ejec').innerText = ejec;
         }
 
