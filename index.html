@@ -141,7 +141,7 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
         // CONFIGURACIÓN DE SUPABASE (Inserta aquí tus credenciales reales del proyecto)
-        const SUPABASE_URL ='https://sistema-cfg-lara.onrender.com';
+        const SUPABASE_URL ='https://pmjgcfushafjiqziwtjr.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_awAA6RvlPzMoHUyDhMzf_Q_6BFJlgQw';
         
         let supabaseClient = null;
@@ -229,7 +229,7 @@
             const statusBadge = document.getElementById('db-status');
             
             try {
-                if (supabaseClient && SUPABASE_URL !== 'https://sistema-cfg-lara.onrender.com') {
+                if (supabaseClient && SUPABASE_URL !== 'https://pmjgcfushafjiqziwtjr.supabase.co') {
                     // Consulta a la tabla 'comunas' en Supabase
                     const { data, error } = await supabaseClient.from('comunas').select('*');
                     console.log("Datos que devuelve Supabase:", data, error);
