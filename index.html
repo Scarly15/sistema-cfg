@@ -220,7 +220,6 @@
             "Urdaneta": ["Siquisique", "Moroturo", "San Miguel", "Xaguas"]
         };
 
-        // CORRECCIÓN TERRITORIAL REALIZADA AQUÍ (Municipios y parroquias coherentes)
         const comunasRespaldo = [
             { 
                 id: "COM-001",
@@ -335,10 +334,14 @@
             document.getElementById('login-screen').classList.remove('hidden');
         }
 
+        // MAPA CONFIGURADO CON OPENSTREETMAP PARA VISUALIZACIÓN A PROFUNDIDAD DE CALLES Y AVENIDAS
         function initMap() {
             if (!map) {
                 map = L.map('map').setView([10.0678, -69.3474], 9);
-                L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { maxZoom: 18 }).addTo(map);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { 
+                    maxZoom: 19,
+                    attribution: '© OpenStreetMap contributors'
+                }).addTo(map);
                 marcadoresLayer.addTo(map);
             }
         }
@@ -406,8 +409,8 @@
                     });
 
                     let m = L.marker([c.lat, c.lng], { icon: icon });
-                    m.bindPopup(`<b>${embTag}${c.nombre}</b><br>Municipio: ${c.municipio}<br>Sector: <b>${c.sector || 'General'}</b><br>Estatus: ${c.estatus_proyecto}`);
-                    m.on('click', () => { mostrarFichaComuna(c); map.setView([c.lat, c.lng], 13); });
+                    m.bindPopup(`<b>${embTag}${c.nombre}</b><br>Municipio: ${c.municipio}<br>Parroquia: ${c.parroquia}<br>Sector: <b>${c.sector || 'General'}</b><br>Estatus: ${c.estatus_proyecto}`);
+                    m.on('click', () => { mostrarFichaComuna(c); map.setView([c.lat, c.lng], 15); });
                     marcadoresLayer.addLayer(m);
                 }
             });
@@ -467,13 +470,12 @@
             let c = comunasData.find(x => obtenerId(x) === String(id));
             if (c) {
                 mostrarFichaComuna(c);
-                if (c.lat && c.lng) map.setView([c.lat, c.lng], 14);
+                if (c.lat && c.lng) map.setView([c.lat, c.lng], 15);
             }
             document.getElementById('resultados-busqueda').classList.add('hidden');
             document.getElementById('input-busqueda-global').value = '';
         }
 
-        // FICHA CON DIVISIÓN EN BOTONES / PESTAÑAS (COMUNAS DEL ESTADO / PROYECTOS CARGADOS)
         function mostrarFichaComuna(c, pestana = 'comuna') {
             pestanaActivaFicha = pestana;
             document.getElementById('titulo-panel-lateral').innerText = "Ficha Técnica Integral";
@@ -482,7 +484,6 @@
             let cid = obtenerId(c);
             let ccs = Array.isArray(c.consejos_comunales) ? c.consejos_comunales : [];
 
-            // Generación de lista de Consejos Comunales para la Pestaña Comuna
             let ccsHtml = ccs.map((cc, i) => {
                 let nombreCC = typeof cc === 'string' ? cc : cc.nombre;
                 let voceria = cc.voceria_estatus || "Vigente";
@@ -499,7 +500,6 @@
                 </div>`;
             }).join('');
 
-            // Opciones de Estatus de Proyecto
             const estatusOpciones = ["Borrador", "Pre-evaluación", "En Evaluación", "En Ejecución", "Culminado"];
             let comboEstatusHtml = estatusOpciones.map(est => 
                 `<option value="${est}" ${c.estatus_proyecto === est ? 'selected' : ''}>${est}</option>`
@@ -517,6 +517,12 @@
             `;
 
             let cuerpoFicha = '';
+
+            // CONTROL DE ROL: ANALISTAS NO PUEDEN EDITAR CONSEJOS COMUNALES
+            let esAnalista = usuarioActual && usuarioActual.rol === 'Analista';
+            let botonEditarCC = !esAnalista ? 
+                `<button onclick="abrirModalEditarCC('${cid}')" class="text-[10px] bg-indigo-600 hover:bg-indigo-500 text-white px-2 py-0.5 rounded font-bold">✏️ Editar CCs</button>` : 
+                `<span class="text-[10px] text-slate-500 italic">Modo Lectura (Analista)</span>`;
 
             if (pestana === 'comuna') {
                 cuerpoFicha = `
@@ -544,7 +550,7 @@
                         <div class="bg-slate-900 p-3.5 rounded-xl border border-slate-800 space-y-2">
                             <div class="flex justify-between items-center">
                                 <span class="font-bold text-emerald-400 text-[11px] uppercase">👥 Consejos Comunales (${ccs.length})</span>
-                                <button onclick="abrirModalEditarCC('${cid}')" class="text-[10px] bg-indigo-600 hover:bg-indigo-500 text-white px-2 py-0.5 rounded font-bold">✏️ Editar CCs</button>
+                                ${botonEditarCC}
                             </div>
                             <div class="space-y-2 max-h-48 overflow-y-auto pr-1">${ccsHtml || '<p class="text-slate-500 italic">No hay consejos comunales cargados.</p>'}</div>
                         </div>
@@ -573,7 +579,6 @@
                             </div>
                         </div>
 
-                        <!-- MODIFICAR ESTATUS DE PROYECTO -->
                         <div class="bg-slate-900 p-3.5 rounded-xl border border-indigo-500/30 space-y-2">
                             <label class="block font-bold text-indigo-300 text-[11px] uppercase">⚡ Cambiar Estatus del Proyecto</label>
                             <div class="flex gap-2">
@@ -619,7 +624,6 @@
             panel.classList.remove('translate-x-full');
         }
 
-        // FUNCIONALIDAD PARA GUARDAR ESTATUS MODIFICADO
         function guardarEstatusProyecto(idComuna) {
             let c = comunasData.find(item => obtenerId(item) === String(idComuna));
             if (!c) return;
@@ -689,7 +693,13 @@
             alert("Nudo crítico guardado y actualizado con éxito.");
         }
 
+        // VALIDACIÓN RIGUROSA PARA IMPEDIR EDICIÓN DE CC POR ROL DE ANALISTA
         function abrirModalEditarCC(idComuna) {
+            if (usuarioActual && usuarioActual.rol === 'Analista') {
+                alert("🔒 Acceso Restringido: Los usuarios con rol de Analista no tienen permisos para modificar o editar los consejos comunales.");
+                return;
+            }
+
             let c = comunasData.find(item => obtenerId(item) === String(idComuna));
             if (!c) return;
 
@@ -724,6 +734,11 @@
 
         function guardarCCs(e, idComuna) {
             e.preventDefault();
+            if (usuarioActual && usuarioActual.rol === 'Analista') {
+                alert("🔒 No tienes permisos para realizar esta acción.");
+                return;
+            }
+
             let c = comunasData.find(item => obtenerId(item) === String(idComuna));
             if (!c) return;
 
@@ -740,7 +755,7 @@
             alert("¡Consejos comunales actualizados con éxito!");
         }
 
-        // FICHA ESTADÍSTICA TOTAL CON DESPLIEGUE POR MUNICIPIO Y BOTÓN DE EXPORTAR DATA
+        // FICHA ESTADÍSTICA CON DESPLIEGUE MULTINIVEL: MUNICIPIO -> PARROQUIA -> PROYECTOS
         function abrirFichaEstadistica() {
             document.getElementById('titulo-panel-lateral').innerText = "Ficha Estadística y Exportación";
             const panel = document.getElementById('ficha-comuna');
@@ -748,33 +763,46 @@
             let dataset = comunasData.filter(c => String(c.consulta || "7") === String(cicloActual));
             let total = dataset.length;
 
-            let municipiosContadores = {};
-            Object.keys(municipiosCoordenadas).forEach(m => {
-                municipiosContadores[m] = dataset.filter(c => c.municipio === m);
-            });
+            let listaMunicipiosHtml = Object.keys(municipiosCoordenadas).map(m => {
+                let proysMunicipio = dataset.filter(c => c.municipio === m);
+                let listaParroquiasOficiales = parroquiasPorMunicipio[m] || ["General"];
 
-            let listaMunicipiosHtml = Object.keys(municipiosContadores).map(m => {
-                let listProys = municipiosContadores[m];
-                let proysHtml = listProys.map(p => {
-                    let pid = obtenerId(p);
+                let parroquiasHtml = listaParroquiasOficiales.map(p => {
+                    let proysParroquia = proysMunicipio.filter(item => item.parroquia === p);
+                    
+                    let proysListHtml = proysParroquia.map(proy => {
+                        let pid = obtenerId(proy);
+                        return `
+                        <div onclick="seleccionarResultadoBusqueda('${pid}')" class="bg-slate-950 p-2 rounded border border-slate-800 hover:border-indigo-500 cursor-pointer text-xs space-y-0.5">
+                            <div class="flex justify-between font-bold text-white">
+                                <span>${proy.nombre}</span>
+                                <span class="text-[10px] text-amber-400">${proy.estatus_proyecto}</span>
+                            </div>
+                            <p class="text-[11px] text-slate-300">📌 ${proy.proyectos}</p>
+                        </div>`;
+                    }).join('');
+
                     return `
-                    <div onclick="seleccionarResultadoBusqueda('${pid}')" class="bg-slate-950 p-2 rounded border border-slate-800 hover:border-indigo-500 cursor-pointer text-xs space-y-0.5">
-                        <div class="flex justify-between font-bold text-white">
-                            <span>${p.nombre}</span>
-                            <span class="text-[10px] text-amber-400">${p.estatus_proyecto}</span>
+                    <div class="bg-slate-900 border border-slate-800/80 rounded-lg overflow-hidden ml-2">
+                        <button onclick="toggleDesgloseElemento('desglose-parr-${m}-${p.replace(/\s+/g, '')}')" class="w-full p-2 flex justify-between items-center hover:bg-slate-800/60 transition-all text-[11px] font-semibold text-slate-300">
+                            <span>🏛️ Parroquia: ${p}</span>
+                            <span class="bg-indigo-500/20 text-indigo-300 px-2 py-0.5 rounded text-[9px] font-bold">${proysParroquia.length} Proyectos</span>
+                        </button>
+                        <div id="desglose-parr-${m}-${p.replace(/\s+/g, '')}" class="hidden p-2 bg-slate-950/60 border-t border-slate-800 space-y-1.5">
+                            ${proysListHtml || '<p class="text-slate-500 text-[10px] italic">No existen proyectos en esta parroquia.</p>'}
                         </div>
-                        <p class="text-[11px] text-slate-300">${p.proyectos}</p>
                     </div>`;
                 }).join('');
 
                 return `
                 <div class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
-                    <button onclick="toggleDesgloseMunicipio('${m}')" class="w-full p-3 flex justify-between items-center hover:bg-slate-800/80 transition-all text-xs font-bold text-slate-200">
-                        <span class="flex items-center gap-2">📍 ${m}</span>
-                        <span class="bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 px-2.5 py-0.5 rounded-lg text-[10px]">${listProys.length} Proyectos</span>
+                    <button onclick="toggleDesgloseElemento('desglose-mun-${m.replace(/\s+/g, '')}')" class="w-full p-3 flex justify-between items-center hover:bg-slate-800/80 transition-all text-xs font-bold text-slate-200">
+                        <span class="flex items-center gap-2">📍 Municipio ${m}</span>
+                        <span class="bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 px-2.5 py-0.5 rounded-lg text-[10px]">${proysMunicipio.length} Proyectos</span>
                     </button>
-                    <div id="desglose-mun-${m}" class="hidden p-2.5 bg-slate-950/50 border-t border-slate-800 space-y-2">
-                        ${proysHtml || '<p class="text-slate-500 text-[10px] italic">No hay proyectos asignados en este municipio.</p>'}
+                    <div id="desglose-mun-${m.replace(/\s+/g, '')}" class="hidden p-2.5 bg-slate-950/50 border-t border-slate-800 space-y-2">
+                        <p class="text-[10px] text-slate-400 font-medium uppercase px-1">Seleccione una parroquia:</p>
+                        ${parroquiasHtml}
                     </div>
                 </div>`;
             }).join('');
@@ -792,7 +820,7 @@
                     </div>
 
                     <div class="space-y-2">
-                        <span class="font-bold text-slate-300 block">Seleccione un Municipio para desplegar sus proyectos:</span>
+                        <span class="font-bold text-slate-300 block">Seleccione un Municipio para desplegar sus Parroquias y Proyectos:</span>
                         ${listaMunicipiosHtml}
                     </div>
                 </div>
@@ -800,12 +828,11 @@
             panel.classList.remove('translate-x-full');
         }
 
-        function toggleDesgloseMunicipio(m) {
-            let el = document.getElementById(`desglose-mun-${m}`);
+        function toggleDesgloseElemento(idElemento) {
+            let el = document.getElementById(idElemento);
             if (el) el.classList.toggle('hidden');
         }
 
-        // FUNCIONALIDAD PARA EXPORTAR INFORMACIÓN EN FORMATO CSV
         function exportarInformacionExcel() {
             let dataset = comunasData.filter(c => String(c.consulta || "7") === String(cicloActual));
             
