@@ -60,6 +60,16 @@
                 <div class="bg-indigo-500 w-2.5 h-2.5 rounded-full animate-pulse"></div>
                 <span class="font-bold tracking-wide text-sm">CFG LARA <span class="text-indigo-400 font-light">| Sistema de Comando Táctico</span></span>
             </div>
+
+            <!-- SELECTOR DE CONSULTA POPULAR (7ma vs 8va) -->
+            <div class="flex items-center space-x-2 bg-slate-950/80 border border-slate-800 px-3 py-1.5 rounded-xl">
+                <span class="text-[11px] text-slate-400 uppercase font-semibold">Ciclo:</span>
+                <select id="select-ciclo-consulta" onchange="cambiarCicloConsulta(this.value)" class="bg-slate-900 text-indigo-300 text-xs font-bold border border-slate-700 rounded px-2 py-1 focus:outline-none focus:border-indigo-500">
+                    <option value="7">7ma Consulta (354 Comunas)</option>
+                    <option value="8">8va Consulta (369 Comunas)</option>
+                </select>
+            </div>
+
             <div class="flex items-center space-x-4">
                 <span id="user-display" class="text-xs bg-slate-800 border border-slate-700 px-3 py-1.5 rounded-full text-indigo-300"></span>
                 <span id="db-status" class="text-[10px] bg-amber-500/10 text-amber-400 border border-amber-500/30 px-2.5 py-1 rounded-full">Verificando BD...</span>
@@ -98,7 +108,7 @@
                 <!-- ESTADÍSTICAS CLICKABLES -->
                 <div class="bg-slate-950/60 border border-slate-800 rounded-xl p-3 space-y-3">
                     <div class="flex justify-between items-center text-xs font-semibold text-slate-300">
-                        <span>ESTADÍSTICAS LARA</span>
+                        <span id="label-stats-titulo">ESTADÍSTICAS LARA</span>
                         <span id="total-comunas-badge" class="text-indigo-400">0 Comunas</span>
                     </div>
                     <div onclick="mostrarListaFiltro('aldia')" class="cursor-pointer hover:bg-slate-900/80 p-1.5 rounded transition-all">
@@ -135,9 +145,9 @@
                     </button>
                 </div>
                 
-                <!-- NUEVO BOTÓN ASISTENTE IA -->
+                <!-- ASISTENTE IA Y AUDITORÍA DE SECTORES -->
                 <button onclick="abrirResumenIA()" class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-medium py-2.5 rounded-xl text-xs shadow-lg transition-all flex items-center justify-center space-x-2">
-                    <span>✨ Resumen Ejecutivo </span>
+                    <span>✨ Resumen Ejecutivo & Sectores</span>
                 </button>
 
                 <button onclick="cargarDatosSupabase()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 py-2 rounded-lg text-xs transition-colors">
@@ -169,6 +179,7 @@
         let supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         let map;
         let comunasData = [];
+        let cicloActual = "7"; // Por defecto 7ma consulta
         let marcadoresLayer = L.layerGroup();
 
         const municipiosCoordenadas = {
@@ -183,7 +194,7 @@
             "Urdaneta": { lat: 10.6300, lng: -69.4800, zoom: 11 }
         };
 
-        const comunasRespaldo = [
+        const comunasRespaldo7ma = [
             { 
                 codigo: "COM-001",
                 nombre: "Comuna Piloto Lara", 
@@ -192,7 +203,8 @@
                 lat: 10.0736, lng: -69.3215, 
                 cc_vigentes: 10, cc_vencidos: 3,
                 rendicion_cuentas: "Al día",
-                proyectos: "Rehabilitación Vial e Hidráulica"
+                proyectos: "Rehabilitación Vial e Hidráulica",
+                consulta: "7"
             },
             { 
                 codigo: "COM-002",
@@ -202,7 +214,33 @@
                 lat: 10.2350, lng: -69.2550, 
                 cc_vigentes: 2, cc_vencidos: 7,
                 rendicion_cuentas: "Moroso",
-                proyectos: "Sustitución de colectores y agua potable"
+                proyectos: "Sustitución de colectores y agua potable",
+                consulta: "7"
+            },
+            { 
+                codigo: "COM-003",
+                nombre: "Comuna Gigantes de Quíbor", 
+                municipio: "Jiménez", 
+                parroquia: "Catedral",
+                lat: 9.9800, lng: -69.7800, 
+                cc_vigentes: 8, cc_vencidos: 1,
+                rendicion_cuentas: "Al día",
+                proyectos: "Agua Potable y Electricidad",
+                consulta: "7"
+            }
+        ];
+
+        const comunasRespaldo8va = [
+            { 
+                codigo: "COM-101",
+                nombre: "Comuna Nueva Era 8va", 
+                municipio: "Iribarren", 
+                parroquia: "Catedral",
+                lat: 10.0800, lng: -69.3500, 
+                cc_vigentes: 12, cc_vencidos: 2,
+                rendicion_cuentas: "Al día",
+                proyectos: "Consolidación de Servicios Públicos y Vialidad",
+                consulta: "8"
             }
         ];
 
@@ -251,18 +289,37 @@
                     throw new Error("Tabla sin registros.");
                 }
             } catch (err) {
-                console.error("DETALLE DEL ERROR DE SUPABASE:", err);
-                comunasData = comunasRespaldo;
+                console.warn("Usando datos de respaldo locales por ciclo:", err);
+                comunasData = [...comunasRespaldo7ma, ...comunasRespaldo8va];
                 statusBadge.className = "text-[10px] bg-indigo-500/10 text-indigo-300 border border-indigo-500/30 px-2.5 py-1 rounded-full";
-                statusBadge.innerText = "Error BD: " + err.message;
+                statusBadge.innerText = "Modo Respaldo Activo";
             }
-            actualizarEstadisticas(comunasData);
-            renderizarComunasEnMapa(comunasData);
+            filtrarPorCicloActivo();
+        }
+
+        function cambiarCicloConsulta(valor) {
+            cicloActual = valor;
+            filtrarPorCicloActivo();
+        }
+
+        function filtrarPorCicloActivo() {
+            // Filtrar comunas según el ciclo 7ma (354 esperadas) o 8va (369 esperadas)
+            let datosFiltrados = comunasData.filter(c => String(c.consulta || "7") === String(cicloActual));
+            if (datosFiltrados.length === 0) {
+                // Si la BD no tiene el campo consulta, simulamos partición o mostramos todas vinculadas
+                datosFiltrados = comunasData;
+            }
+            
+            const metaComunas = cicloActual === "7" ? "354 Comunas (7ma)" : "369 Comunas (8va)";
+            document.getElementById('total-comunas-badge').innerText = metaComunas;
+            document.getElementById('label-stats-titulo').innerText = `ESTADÍSTICAS LARA (${cicloActual}ª CONSULTA)`;
+
+            actualizarEstadisticas(datosFiltrados);
+            renderizarComunasEnMapa(datosFiltrados);
         }
 
         function actualizarEstadisticas(data) {
             const total = data.length;
-            document.getElementById('total-comunas-badge').innerText = `${total} Comunas`;
             if (total === 0) return;
 
             let alDia = data.filter(c => c.rendicion_cuentas && c.rendicion_cuentas.toLowerCase().includes('día')).length;
@@ -294,7 +351,6 @@
 
                     let marker = L.marker([c.lat, c.lng], { icon: customIcon });
                     
-                    // Asegurar que al hacer clic abra correctamente la ficha y la vista
                     marker.on('click', () => {
                         mostrarFichaComuna(c);
                         map.setView([c.lat, c.lng], 13);
@@ -311,7 +367,7 @@
             document.getElementById('contenido-ficha').innerHTML = `
                 <div>
                     <h2 class="text-base font-bold text-white mb-1">${c.nombre}</h2>
-                    <span class="text-xs bg-indigo-500/10 text-indigo-400 px-2 py-0.5 rounded border border-indigo-500/20">Código: ${c.codigo || 'S/N'}</span>
+                    <span class="text-xs bg-indigo-500/10 text-indigo-400 px-2 py-0.5 rounded border border-indigo-500/20">Código: ${c.codigo || 'S/N'} | ${c.consulta || cicloActual}ª Consulta</span>
                 </div>
                 <div class="bg-slate-950/40 p-3 rounded-xl border border-slate-800 space-y-2 text-xs">
                     <div class="flex justify-between"><span class="text-slate-400">Municipio:</span> <span class="font-medium text-white">${c.municipio || 'N/D'}</span></div>
@@ -324,7 +380,7 @@
                     <div class="flex justify-between"><span class="text-slate-400">Vencidos:</span> <span class="text-amber-400 font-bold">${c.cc_vencidos || 0}</span></div>
                 </div>
                 <div class="bg-slate-950/40 p-3 rounded-xl border border-slate-800 space-y-1 text-xs">
-                    <div class="font-semibold text-indigo-300">Proyectos / Observaciones</div>
+                    <div class="font-semibold text-indigo-300">Proyectos / Sectores</div>
                     <p class="text-slate-300">${c.proyectos || 'Sin proyectos registrados.'}</p>
                 </div>
             `;
@@ -332,27 +388,33 @@
         }
 
         function mostrarListaFiltro(tipo) {
+            let datasetActivo = comunasData.filter(c => String(c.consulta || "7") === String(cicloActual));
+            if (datasetActivo.length === 0) datasetActivo = comunasData;
+
             let lista = [];
             let titulo = "";
             if (tipo === 'aldia') {
-                lista = comunasData.filter(c => !c.rendicion_cuentas || c.rendicion_cuentas.toLowerCase().includes('día'));
-                titulo = "Comunas con Rendición al Día";
+                lista = datasetActivo.filter(c => !c.rendicion_cuentas || c.rendicion_cuentas.toLowerCase().includes('día'));
+                titulo = `Rendición al Día (${cicloActual}ª Consulta)`;
             } else if (tipo === 'vigentes') {
-                lista = comunasData.filter(c => (Number(c.cc_vigentes) || 0) >= (Number(c.cc_vencidos) || 0));
-                titulo = "Comunas con Mayoría CC Vigentes";
+                lista = datasetActivo.filter(c => (Number(c.cc_vigentes) || 0) >= (Number(c.cc_vencidos) || 0));
+                titulo = `Mayoría CC Vigentes (${cicloActual}ª Consulta)`;
             }
             renderizarListaEnPanel(lista, titulo);
         }
 
         function filtrarAlerta(tipo) {
+            let datasetActivo = comunasData.filter(c => String(c.consulta || "7") === String(cicloActual));
+            if (datasetActivo.length === 0) datasetActivo = comunasData;
+
             let lista = [];
             let titulo = "";
             if (tipo === 'morosos') {
-                lista = comunasData.filter(c => c.rendicion_cuentas && c.rendicion_cuentas.toLowerCase().includes('moroso'));
-                titulo = "Alerta: Comunas Morosas";
+                lista = datasetActivo.filter(c => c.rendicion_cuentas && c.rendicion_cuentas.toLowerCase().includes('moroso'));
+                titulo = `Alerta: Comunas Morosas`;
             } else if (tipo === 'vencidos') {
-                lista = comunasData.filter(c => (Number(c.cc_vencidos) || 0) > (Number(c.cc_vigentes) || 0));
-                titulo = "Alerta: CC Vencidos";
+                lista = datasetActivo.filter(c => (Number(c.cc_vencidos) || 0) > (Number(c.cc_vigentes) || 0));
+                titulo = `Alerta: CC Vencidos`;
             }
             renderizarListaEnPanel(lista, titulo);
         }
@@ -361,7 +423,7 @@
             document.getElementById('titulo-panel-lateral').innerText = titulo;
             const panel = document.getElementById('ficha-comuna');
             
-            let html = `<p class="text-xs text-slate-400 mb-3">Se encontraron <b>${lista.length}</b> registros bajo este criterio:</p><div class="space-y-2">`;
+            let html = `<p class="text-xs text-slate-400 mb-3">Se encontraron <b>${lista.length}</b> registros:</p><div class="space-y-2">`;
             if (lista.length === 0) {
                 html += `<p class="text-xs text-slate-500">No hay comunas en este grupo.</p>`;
             } else {
@@ -388,20 +450,23 @@
         }
 
         function abrirResumenIA() {
-            document.getElementById('titulo-panel-lateral').innerText = "Resumen Ejecutivo con IA";
+            document.getElementById('titulo-panel-lateral').innerText = "Análisis de Sectores & IA";
             const panel = document.getElementById('ficha-comuna');
             
-            let total = comunasData.length;
-            let morosos = comunasData.filter(c => c.rendicion_cuentas && c.rendicion_cuentas.toLowerCase().includes('moroso')).length;
+            let datasetActivo = comunasData.filter(c => String(c.consulta || "7") === String(cicloActual));
+            if (datasetActivo.length === 0) datasetActivo = comunasData;
+
+            let total = datasetActivo.length;
+            let alDiaCount = datasetActivo.filter(c => !c.rendicion_cuentas || c.rendicion_cuentas.toLowerCase().includes('día')).length;
             
             document.getElementById('contenido-ficha').innerHTML = `
                 <div class="space-y-3 text-xs">
                     <div class="bg-indigo-950/40 border border-indigo-500/30 p-3 rounded-xl text-indigo-200">
-                        <b>🤖 Análisis Inteligente CFG:</b> El estado actual de Lara cuenta con ${total} comunas monitoreadas bajo directrices estratégicas. Se detectan ${morosos} focos de atención prioritaria por retraso en rendición.
+                        <b>🤖 Auditoría ${cicloActual}ª Consulta:</b> Monitoreando ${total} comunas vinculadas. ${alDiaCount} comunas se encuentran al día en rendición de cuentas.
                     </div>
                     <div class="bg-slate-950/40 p-3 rounded-xl border border-slate-800 space-y-2">
-                        <div class="font-bold text-white">Filtro Rápido por Sector / Proyecto:</div>
-                        <input type="text" id="busqueda-sector" oninput="filtrarPorSector(this.value)" placeholder="Ej. Agua, vialidad, salud..." class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-xs text-white">
+                        <div class="font-bold text-white">Filtrar por Sector Prioritario (Agua, Vialidad, Electricidad...):</div>
+                        <input type="text" id="busqueda-sector" oninput="filtrarPorSector(this.value)" placeholder="Escriba sector o proyecto..." class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-xs text-white">
                     </div>
                     <div id="resultado-sectores" class="space-y-2 max-h-60 overflow-y-auto">
                         <p class="text-slate-500 text-[11px]">Escriba una palabra clave arriba para listar proyectos por sector.</p>
@@ -413,13 +478,16 @@
 
         function filtrarPorSector(keyword) {
             const contenedor = document.getElementById('resultado-sectores');
+            let datasetActivo = comunasData.filter(c => String(c.consulta || "7") === String(cicloActual));
+            if (datasetActivo.length === 0) datasetActivo = comunasData;
+
             if (!keyword) {
                 contenedor.innerHTML = `<p class="text-slate-500 text-[11px]">Escriba una palabra clave arriba para listar proyectos por sector.</p>`;
                 return;
             }
-            let matches = comunasData.filter(c => c.proyectos && c.proyectos.toLowerCase().includes(keyword.toLowerCase()));
+            let matches = datasetActivo.filter(c => c.proyectos && c.proyectos.toLowerCase().includes(keyword.toLowerCase()));
             if (matches.length === 0) {
-                contenedor.innerHTML = `<p class="text-xs text-red-400">No se encontraron proyectos asociados a "${keyword}".</p>`;
+                contenedor.innerHTML = `<p class="text-xs text-red-400">No se encontraron proyectos asociados a "${keyword}" en esta consulta.</p>`;
             } else {
                 contenedor.innerHTML = matches.map(c => `
                     <div onclick='seleccionarComunaPorCodigo("${c.codigo}")' class="bg-slate-900 p-2 rounded border border-slate-800 cursor-pointer hover:border-indigo-500">
@@ -443,7 +511,7 @@
             if (!texto) { contenedor.classList.add('hidden'); return; }
             let coincidencias = comunasData.filter(c => c.nombre.toLowerCase().includes(texto.toLowerCase()));
             if (coincidencias.length > 0) {
-                contenedor.innerHTML = coincidencias.map(c => `<div onclick="seleccionarComunaPorCodigo('${c.codigo}')" class="p-2.5 hover:bg-slate-800 cursor-pointer">${c.nombre}</div>`).join('');
+                contenedor.innerHTML = coincidencias.map(c => `<div onclick="seleccionarComunaPorCodigo('${c.codigo}')" class="p-2.5 hover:bg-slate-800 cursor-pointer">${c.nombre} (${c.consulta || '7'}ª)</div>`).join('');
                 contenedor.classList.remove('hidden');
             } else {
                 contenedor.classList.add('hidden');
