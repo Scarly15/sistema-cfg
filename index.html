@@ -4,20 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema de Monitoreo Territorial | CFG Lara</title>
-    <!-- Tailwind CSS para diseño moderno -->
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Leaflet CSS para los mapas -->
+    <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <!-- Supabase JS Client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         #map { height: calc(100vh - 4rem); }
         .leaflet-popup-content-wrapper, .leaflet-popup-tip {
-            background-color: #ffffff !important;
-            color: #1e293b !important;
-            border: 1px solid #cbd5e1;
+            background-color: #0f172a !important;
+            color: #f8fafc !important;
+            border: 1px solid #334155;
             border-radius: 0.75rem;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
         }
     </style>
 </head>
@@ -27,19 +27,22 @@
     <div id="login-screen" class="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-900 px-4">
         <div class="max-w-md w-full bg-slate-900/90 backdrop-blur-md border border-slate-800 p-8 rounded-2xl shadow-2xl">
             <div class="text-center mb-8">
+                <div class="flex justify-center mb-3">
+                    <img src="https://www.cfg.gob.ve/img/logo_cfg.png" alt="Logo CFG" class="h-12 object-contain" onerror="this.style.display='none'">
+                </div>
                 <span class="bg-indigo-500/10 text-indigo-400 text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-wider">Consejo Federal de Gobierno</span>
                 <h1 class="text-2xl font-bold mt-3 text-white">Monitoreo Territorial Lara</h1>
-                <p class="text-xs text-slate-400 mt-1">Conexión Segura Supabase</p>
+                <p class="text-xs text-slate-400 mt-1">Centro de Comando de Gestión Comunal</p>
             </div>
             
             <form id="login-form" onsubmit="handleLogin(event)" class="space-y-5">
                 <div>
                     <label class="block text-xs font-medium text-slate-300 uppercase mb-2">Usuario</label>
-                    <input type="text" id="username" required class="w-full bg-slate-950/60 border border-slate-800 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-indigo-500 transition-colors" placeholder="Ingrese su usuario">
+                    <input type="text" id="username" required class="w-full bg-slate-950/60 border border-slate-800 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-indigo-500" placeholder="Ingrese su usuario">
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-slate-300 uppercase mb-2">Contraseña</label>
-                    <input type="password" id="password" required class="w-full bg-slate-950/60 border border-slate-800 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-indigo-500 transition-colors" placeholder="••••••••">
+                    <input type="password" id="password" required class="w-full bg-slate-950/60 border border-slate-800 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-indigo-500" placeholder="••••••••">
                 </div>
                 <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-3 rounded-lg text-sm transition-all shadow-lg shadow-indigo-600/30">
                     Ingresar al Sistema
@@ -51,31 +54,29 @@
 
     <!-- DASHBOARD PRINCIPAL -->
     <div id="app-screen" class="hidden h-screen flex flex-col">
-        <!-- Barra Superior -->
         <header class="bg-slate-900 border-b border-slate-800 h-16 flex items-center justify-between px-6 z-25">
             <div class="flex items-center space-x-3">
-                <div class="bg-indigo-500 w-3 h-3 rounded-full animate-pulse"></div>
-                <span class="font-bold tracking-wide text-sm">CFG LARA <span class="text-indigo-400 font-light">| Centro de Comando Territorial</span></span>
+                <img src="https://www.cfg.gob.ve/img/logo_cfg.png" alt="Logo CFG" class="h-9 object-contain" onerror="this.style.display='none'">
+                <div class="bg-indigo-500 w-2.5 h-2.5 rounded-full animate-pulse"></div>
+                <span class="font-bold tracking-wide text-sm">CFG LARA <span class="text-indigo-400 font-light">| Sistema de Comando Táctico</span></span>
             </div>
             <div class="flex items-center space-x-4">
                 <span id="user-display" class="text-xs bg-slate-800 border border-slate-700 px-3 py-1.5 rounded-full text-indigo-300"></span>
-                <span id="db-status" class="text-[10px] bg-amber-500/10 text-amber-400 border border-amber-500/30 px-2.5 py-1 rounded-full">Conectando a BD...</span>
+                <span id="db-status" class="text-[10px] bg-amber-500/10 text-amber-400 border border-amber-500/30 px-2.5 py-1 rounded-full">Verificando BD...</span>
                 <button onclick="handleLogout()" class="text-xs bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 px-3 py-1.5 rounded-lg transition-colors">
                     Cerrar Sesión
                 </button>
             </div>
         </header>
 
-        <!-- Contenido Central -->
         <div class="flex-1 flex overflow-hidden relative">
             <aside class="w-80 bg-slate-900/95 border-r border-slate-800 flex flex-col p-4 space-y-4 z-10 overflow-y-auto">
                 <div class="space-y-2">
                     <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Buscador Territorial</label>
-                    <div class="relative">
-                        <input type="text" id="buscador-territorial" oninput="filtrarComunas(this.value)" placeholder="Buscar comuna..." class="w-full bg-slate-950/60 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500">
-                    </div>
+                    <input type="text" id="buscador-territorial" oninput="filtrarComunas(this.value)" placeholder="Buscar comuna..." class="w-full bg-slate-950/60 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500">
                     <div id="resultados-busqueda" class="bg-slate-900 border border-slate-800 rounded-lg max-h-40 overflow-y-auto hidden text-xs divide-y divide-slate-800 shadow-xl"></div>
                 </div>
+
                 <div class="space-y-2">
                     <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Zoom por Municipio</label>
                     <select id="select-municipio" onchange="zoomMunicipio(this.value)" class="w-full bg-slate-950/60 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500">
@@ -91,26 +92,56 @@
                         <option value="Urdaneta">Urdaneta (Siquisique)</option>
                     </select>
                 </div>
+
                 <hr class="border-slate-800 my-1">
-                <h2 class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Módulos Estratégicos</h2>
-                <button onclick="alert('Módulo de Proyectos Emblemáticos en configuración')" class="flex items-center space-x-3 w-full bg-slate-950/40 hover:bg-slate-800/60 p-3 rounded-xl border border-slate-800 text-left text-sm transition-all group">
-                    <span class="p-2 rounded-lg bg-indigo-500/10 text-indigo-400 group-hover:bg-indigo-500/20">⭐</span>
-                    <div>
-                        <div class="font-medium">Proyectos Emblemáticos</div>
-                        <div class="text-xs text-slate-400">Obras de alto impacto</div>
+
+                <div class="bg-slate-950/60 border border-slate-800 rounded-xl p-3 space-y-3">
+                    <div class="flex justify-between items-center text-xs font-semibold text-slate-300">
+                        <span>ESTADÍSTICAS LARA</span>
+                        <span id="total-comunas-badge" class="text-indigo-400">0 Comunas</span>
                     </div>
-                </button>
-                <button onclick="alert('Módulo de Ejecución Física en configuración')" class="flex items-center space-x-3 w-full bg-slate-950/40 hover:bg-slate-800/60 p-3 rounded-xl border border-slate-800 text-left text-sm transition-all group">
-                    <span class="p-2 rounded-lg bg-emerald-500/10 text-emerald-400 group-hover:bg-emerald-500/20">📊</span>
                     <div>
-                        <div class="font-medium">Ejecución Física</div>
-                        <div class="text-xs text-slate-400">7ma y 8va Consulta Popular</div>
+                        <div class="flex justify-between text-[11px] text-slate-400 mb-1">
+                            <span>Rendición de Cuentas al Día</span>
+                            <span id="porcentaje-rendicion" class="text-emerald-400 font-bold">0%</span>
+                        </div>
+                        <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                            <div id="barra-rendicion" class="bg-emerald-500 h-full transition-all duration-500" style="width: 0%"></div>
+                        </div>
                     </div>
+                    <div>
+                        <div class="flex justify-between text-[11px] text-slate-400 mb-1">
+                            <span>Consejos Comunales Vigentes</span>
+                            <span id="porcentaje-cc" class="text-indigo-400 font-bold">0%</span>
+                        </div>
+                        <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                            <div id="barra-cc" class="bg-indigo-500 h-full transition-all duration-500" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="border-slate-800 my-1">
+
+                <h2 class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Filtros Críticos y Alertas</h2>
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="filtrarAlerta('morosos')" class="bg-red-500/10 hover:bg-red-500/25 border border-red-500/30 text-red-300 p-2.5 rounded-xl text-left text-xs transition-all">
+                        <div class="font-bold">⚠️ Morosos</div>
+                        <div class="text-[10px] text-slate-400">Sin rendir cuentas</div>
+                    </button>
+                    <button onclick="filtrarAlerta('vencidos')" class="bg-amber-500/10 hover:bg-amber-500/25 border border-amber-500/30 text-amber-300 p-2.5 rounded-xl text-left text-xs transition-all">
+                        <div class="font-bold">⏳ CC Vencidos</div>
+                        <div class="text-[10px] text-slate-400">Requieren renovación</div>
+                    </button>
+                </div>
+                <button onclick="cargarDatosSupabase()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 py-2 rounded-lg text-xs transition-colors">
+                    🔄 Recargar Datos
                 </button>
             </aside>
+
             <main class="flex-1 relative">
                 <div id="map"></div>
             </main>
+
             <div id="ficha-comuna" class="absolute right-0 top-0 h-full w-96 bg-slate-900/95 border-l border-slate-800 shadow-2xl z-30 transform translate-x-full transition-transform duration-300 flex flex-col p-6 overflow-y-auto">
                 <div class="flex items-center justify-between pb-4 border-b border-slate-800">
                     <span class="text-xs font-semibold uppercase tracking-wider text-indigo-400">Ficha Técnica Comunal</span>
@@ -124,12 +155,13 @@
     <!-- Scripts -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        const SUPABASE_URL ='https://pmjgcfushafjiqziwtjr.supabase.co';
+        const SUPABASE_URL = 'https://pmjgcfushafjiqziwtjr.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_awAA6RvlPzMoHUyDhMzf_Q_6BFJlgQw';
         
         let supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         let map;
         let comunasData = [];
+        let marcadoresLayer = L.layerGroup();
 
         const municipiosCoordenadas = {
             "Iribarren": { lat: 10.0678, lng: -69.3474, zoom: 12 },
@@ -143,16 +175,28 @@
             "Urdaneta": { lat: 10.6300, lng: -69.4800, zoom: 11 }
         };
 
-        const comunasRespaldo = [{ 
-            codigo: "COM-001-LARA",
-            nombre: "Comuna Socialista Aguedo Felipe Alvarado", 
-            municipio: "Iribarren", 
-            parroquia: "Aguedo Felipe Alvarado",
-            lat: 10.1500, lng: -69.3200, 
-            cc_vigentes: 12, cc_vencidos: 2,
-            geometria: [[10.18, -69.35], [10.18, -69.28], [10.12, -69.28], [10.12, -69.35]],
-            proyectos: [{ nombre: "Rehabilitación de Pozo de Agua Profunda", consulta: "7ma Consulta", sector: "Agua", ejecucion: 85 }]
-        }];
+        const comunasRespaldo = [
+            { 
+                codigo: "COM-001",
+                nombre: "Comuna Piloto Lara", 
+                municipio: "Iribarren", 
+                parroquia: "Aguedo Felipe Alvarado",
+                lat: 10.0736, lng: -69.3215, 
+                cc_vigentes: 10, cc_vencidos: 3,
+                rendicion_cuentas: "Al día",
+                proyectos: "Rehabilitación Vial e Hidráulica"
+            },
+            { 
+                codigo: "COM-002",
+                nombre: "Comuna Hugo Chávez", 
+                municipio: "Palavecino", 
+                parroquia: "Cabudare",
+                lat: 10.2350, lng: -69.2550, 
+                cc_vigentes: 5, cc_vencidos: 6,
+                rendicion_cuentas: "Moroso",
+                proyectos: "Sustitución de colectores"
+            }
+        ];
 
         function handleLogin(event) {
             event.preventDefault();
@@ -161,12 +205,12 @@
             if (user === 'admin_cfg' && pass === 'admin123') {
                 document.getElementById('login-screen').classList.add('hidden');
                 document.getElementById('app-screen').classList.remove('hidden');
-                document.getElementById('user-display').innerText = `Usuario: ${user} (Admin)`;
+                document.getElementById('user-display').innerText = `Usuario: ${user}`;
                 initMap();
                 cargarDatosSupabase();
             } else {
                 const err = document.getElementById('login-error');
-                err.innerText = 'Credenciales incorrectas.';
+                err.innerText = 'Credenciales incorrectas (Use admin_cfg / admin123).';
                 err.classList.remove('hidden');
             }
         }
@@ -178,10 +222,11 @@
 
         function initMap() {
             if (!map) {
-                map = L.map('map').setView([10.0678, -69.3474], 9);
+                map = L.map('map').setView([10.0678, -69.3474], 10);
                 L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-                    maxZoom: 18, attribution: '&copy; OpenStreetMap', subdomains: 'abcd'
+                    maxZoom: 18, attribution: '&copy; OpenStreetMap & CFG Lara', subdomains: 'abcd'
                 }).addTo(map);
+                marcadoresLayer.addTo(map);
             }
         }
 
@@ -193,37 +238,122 @@
                 if (data && data.length > 0) {
                     comunasData = data;
                     statusBadge.className = "text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 px-2.5 py-1 rounded-full";
-                    statusBadge.innerText = "BD Conectada (Supabase)";
+                    statusBadge.innerText = "BD Conectada";
                 } else {
-                    throw new Error("No hay registros en la tabla.");
+                    throw new Error("Tabla sin registros.");
                 }
             } catch (err) {
-                console.warn("Usando respaldo:", err.message);
+                console.warn("Usando datos de respaldo locales:", err.message);
                 comunasData = comunasRespaldo;
                 statusBadge.className = "text-[10px] bg-indigo-500/10 text-indigo-300 border border-indigo-500/30 px-2.5 py-1 rounded-full";
-                statusBadge.innerText = "Modo Híbrido / Local";
+                statusBadge.innerText = "Modo Respaldo Activo";
             }
-            renderizarComunasEnMapa();
+            actualizarEstadisticas(comunasData);
+            renderizarComunasEnMapa(comunasData);
         }
 
-        function renderizarComunasEnMapa() {
-            comunasData.forEach(c => {
-                let geo = Array.isArray(c.geometria) ? c.geometria : [[c.lat+0.03, c.lng-0.03], [c.lat+0.03, c.lng+0.03], [c.lat-0.03, c.lng+0.03], [c.lat-0.03, c.lng-0.03]];
-                L.polygon(geo, { color: '#4f46e5', weight: 2, fillColor: '#6366f1', fillOpacity: 0.3 }).addTo(map).on('click', () => mostrarFichaComuna(c));
-                L.marker([c.lat, c.lng]).addTo(map).on('click', () => mostrarFichaComuna(c)).bindPopup(c.nombre);
+        function actualizarEstadisticas(data) {
+            const total = data.length;
+            document.getElementById('total-comunas-badge').innerText = `${total} Comunas`;
+            if (total === 0) return;
+
+            let alDia = data.filter(c => c.rendicion_cuentas && c.rendicion_cuentas.toLowerCase().includes('día')).length;
+            let pRendicion = Math.round((alDia / total) * 100);
+
+            let totalCCVigentes = data.reduce((acc, c) => acc + (Number(c.cc_vigentes) || 0), 0);
+            let totalCCVencidos = data.reduce((acc, c) => acc + (Number(c.cc_vencidos) || 0), 0);
+            let sumaCC = totalCCVigentes + totalCCVencidos;
+            let pCC = sumaCC > 0 ? Math.round((totalCCVigentes / sumaCC) * 100) : 100;
+
+            document.getElementById('porcentaje-rendicion').innerText = `${pRendicion}%`;
+            document.getElementById('barra-rendicion').style.width = `${pRendicion}%`;
+
+            document.getElementById('porcentaje-cc').innerText = `${pCC}%`;
+            document.getElementById('barra-cc').style.width = `${pCC}%`;
+        }
+
+        function renderizarComunasEnMapa(data) {
+            marcadoresLayer.clearLayers();
+            data.forEach(c => {
+                if (c.lat && c.lng) {
+                    let markerColor = (c.cc_vencidos > c.cc_vigentes || (c.rendicion_cuentas && c.rendicion_cuentas.toLowerCase().includes('moroso'))) ? '#ef4444' : '#6366f1';
+                    
+                    let customIcon = L.divIcon({
+                        className: 'custom-pin',
+                        html: `<div style="background-color: ${markerColor}; width: 14px; height: 14px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 10px rgba(0,0,0,0.5);"></div>`,
+                        iconSize: [14, 14]
+                    });
+
+                    let marker = L.marker([c.lat, c.lng], { icon: customIcon })
+                        .bindPopup(`<div style="font-family:sans-serif;"><b style="color:#0f172a">${c.nombre}</b><br><span style="font-size:11px; color:#475569">Municipio: ${c.municipio || 'N/D'}</span></div>`)
+                        .on('click', () => mostrarFichaComuna(c));
+                    
+                    marcadoresLayer.addLayer(marker);
+                }
             });
         }
 
         function mostrarFichaComuna(c) {
             const panel = document.getElementById('ficha-comuna');
-            document.getElementById('contenido-ficha').innerHTML = `<h2 class="text-base font-bold">${c.nombre}</h2><p>Municipio: ${c.municipio}</p>`;
+            document.getElementById('contenido-ficha').innerHTML = `
+                <div>
+                    <h2 class="text-base font-bold text-white mb-1">${c.nombre}</h2>
+                    <span class="text-xs bg-indigo-500/10 text-indigo-400 px-2 py-0.5 rounded border border-indigo-500/20">Código: ${c.codigo || 'S/N'}</span>
+                </div>
+                <div class="bg-slate-950/40 p-3 rounded-xl border border-slate-800 space-y-2 text-xs">
+                    <div class="flex justify-between"><span class="text-slate-400">Municipio:</span> <span class="font-medium text-white">${c.municipio || 'N/D'}</span></div>
+                    <div class="flex justify-between"><span class="text-slate-400">Parroquia:</span> <span class="font-medium text-white">${c.parroquia || 'N/D'}</span></div>
+                    <div class="flex justify-between"><span class="text-slate-400">Rendición de Cuentas:</span> <span class="font-bold ${c.rendicion_cuentas && c.rendicion_cuentas.toLowerCase().includes('moroso') ? 'text-red-400' : 'text-emerald-400'}">${c.rendicion_cuentas || 'Al día'}</span></div>
+                </div>
+                <div class="bg-slate-950/40 p-3 rounded-xl border border-slate-800 space-y-2 text-xs">
+                    <div class="font-semibold text-indigo-300 mb-1">Consejos Comunales (CC)</div>
+                    <div class="flex justify-between"><span class="text-slate-400">Vigentes:</span> <span class="text-emerald-400 font-bold">${c.cc_vigentes || 0}</span></div>
+                    <div class="flex justify-between"><span class="text-slate-400">Vencidos:</span> <span class="text-amber-400 font-bold">${c.cc_vencidos || 0}</span></div>
+                </div>
+                <div class="bg-slate-950/40 p-3 rounded-xl border border-slate-800 space-y-1 text-xs">
+                    <div class="font-semibold text-indigo-300">Proyectos / Observaciones</div>
+                    <p class="text-slate-300">${c.proyectos || 'Sin proyectos registrados.'}</p>
+                </div>
+            `;
             panel.classList.remove('translate-x-full');
-            map.setView([c.lat, c.lng], 13);
+            if(c.lat && c.lng) map.setView([c.lat, c.lng], 13);
         }
 
         function cerrarFicha() { document.getElementById('ficha-comuna').classList.add('translate-x-full'); }
-        function zoomMunicipio(m) { if (m && municipiosCoordenadas[m]) map.setView([municipiosCoordenadas[m].lat, municipiosCoordenadas[m].lng], municipiosCoordenadas[m].zoom); }
+        
+        function zoomMunicipio(m) { 
+            if (m && municipiosCoordenadas[m]) {
+                map.setView([municipiosCoordenadas[m].lat, municipiosCoordenadas[m].lng], municipiosCoordenadas[m].zoom);
+            } 
+        }
+
+        function filtrarAlerta(tipo) {
+            let filtradas = [];
+            if (tipo === 'morosos') {
+                filtradas = comunasData.filter(c => c.rendicion_cuentas && c.rendicion_cuentas.toLowerCase().includes('moroso'));
+            } else if (tipo === 'vencidos') {
+                filtradas = comunasData.filter(c => (Number(c.cc_vencidos) || 0) > (Number(c.cc_vigentes) || 0));
+            }
+            renderizarComunasEnMapa(filtradas);
+            if(filtradas.length === 0) alert('No se encontraron comunas bajo este filtro.');
+        }
+
+        function filtrarComunas(texto) {
+            const contenedor = document.getElementById('resultados-busqueda');
+            if (!texto) { contenedor.classList.add('hidden'); return; }
+            let coincidencias = comunasData.filter(c => c.nombre.toLowerCase().includes(texto.toLowerCase()));
+            if (coincidencias.length > 0) {
+                contenedor.innerHTML = coincidencias.map(c => `<div onclick="mostrarFichaComunaByCode('${c.codigo}')" class="p-2.5 hover:bg-slate-800 cursor-pointer">${c.nombre}</div>`).join('');
+                contenedor.classList.remove('hidden');
+            } else {
+                contenedor.classList.add('hidden');
+            }
+        }
+
+        function mostrarFichaComunaByCode(codigo) {
+            let comuna = comunasData.find(c => c.codigo === codigo);
+            if (comuna) { mostrarFichaComuna(comuna); document.getElementById('resultados-busqueda').classList.add('hidden'); }
+        }
     </script>
 </body>
 </html>
-```[cite: 1]
