@@ -220,6 +220,7 @@
             "Urdaneta": ["Siquisique", "Moroturo", "San Miguel", "Xaguas"]
         };
 
+        // CORRECCIÓN TERRITORIAL REALIZADA AQUÍ (Municipios y parroquias coherentes)
         const comunasRespaldo = [
             { 
                 id: "COM-001",
@@ -306,33 +307,31 @@
             return String(c.id || c.id_comuna || c.codigo || '');
         }
 
-        // PERSISTENCIA ASÍNCRONA EN SUPABASE
-        async function guardarEnSupabase(idComuna, datosActualizados) {
-            try {
-                const { data, error } = await supabaseClient
-                    .from('comunas')
-                    .update(datosActualizados)
-                    .eq('id', idComuna);
-                if (error) {
-                    console.error("Error al guardar cambios en Supabase:", error);
-                }
-            } catch (err) {
-                console.error("Fallo de conexión persistente con Supabase:", err);
-            }
-        }
-
-        function handleLogin(event) {
+        async function handleLogin(event) {
             event.preventDefault();
             const u = document.getElementById('username').value.trim();
             const p = document.getElementById('password').value.trim();
-            const enc = usuariosSistema.find(user => user.usuario === u && user.pass === p);
-            if (enc) {
-                usuarioActual = enc;
+            
+            // Intentar autenticación con Supabase
+            try {
+                const { data, error } = await supabaseClient.from('usuarios').select('*').eq('usuario', u).eq('pass', p).single();
+                if (data && !error) {
+                    usuarioActual = data;
+                } else {
+                    const enc = usuariosSistema.find(user => user.usuario === u && user.pass === p);
+                    if (enc) usuarioActual = enc;
+                }
+            } catch (e) {
+                const enc = usuariosSistema.find(user => user.usuario === u && user.pass === p);
+                if (enc) usuarioActual = enc;
+            }
+
+            if (usuarioActual) {
                 document.getElementById('login-screen').classList.add('hidden');
                 document.getElementById('app-screen').classList.remove('hidden');
-                document.getElementById('user-display').innerText = `👤 ${enc.usuario} (${enc.rol})`;
+                document.getElementById('user-display').innerText = `👤 ${usuarioActual.usuario} (${usuarioActual.rol})`;
 
-                if (enc.rol === 'Administrador' || enc.rol === 'Creadora') {
+                if (usuarioActual.rol === 'Administrador' || usuarioActual.rol === 'Creadora') {
                     document.getElementById('btn-admin-usuarios').classList.remove('hidden');
                 } else {
                     document.getElementById('btn-admin-usuarios').classList.add('hidden');
@@ -349,14 +348,10 @@
             document.getElementById('login-screen').classList.remove('hidden');
         }
 
-        // MAPA CONFIGURADO CON OPENSTREETMAP PARA VISUALIZACIÓN A PROFUNDIDAD DE CALLES Y AVENIDAS
         function initMap() {
             if (!map) {
                 map = L.map('map').setView([10.0678, -69.3474], 9);
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { 
-                    maxZoom: 19,
-                    attribution: '© OpenStreetMap contributors'
-                }).addTo(map);
+                L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { maxZoom: 18 }).addTo(map);
                 marcadoresLayer.addTo(map);
             }
         }
@@ -387,6 +382,15 @@
             } catch (err) {
                 comunasData = [...comunasRespaldo];
             }
+            
+            // Cargar usuarios desde Supabase
+            try {
+                const { data: usersData } = await supabaseClient.from('usuarios').select('*');
+                if (usersData && usersData.length > 0) {
+                    usuariosSistema = usersData;
+                }
+            } catch(e) {}
+
             filtrarPorCiclo();
         }
 
@@ -424,8 +428,8 @@
                     });
 
                     let m = L.marker([c.lat, c.lng], { icon: icon });
-                    m.bindPopup(`<b>${embTag}${c.nombre}</b><br>Municipio: ${c.municipio}<br>Parroquia: ${c.parroquia}<br>Sector: <b>${c.sector || 'General'}</b><br>Estatus: ${c.estatus_proyecto}`);
-                    m.on('click', () => { mostrarFichaComuna(c); map.setView([c.lat, c.lng], 15); });
+                    m.bindPopup(`<b>${embTag}${c.nombre}</b><br>Municipio: ${c.municipio}<br>Sector: <b>${c.sector || 'General'}</b><br>Estatus: ${c.estatus_proyecto}`);
+                    m.on('click', () => { mostrarFichaComuna(c); map.setView([c.lat, c.lng], 13); });
                     marcadoresLayer.addLayer(m);
                 }
             });
@@ -485,12 +489,13 @@
             let c = comunasData.find(x => obtenerId(x) === String(id));
             if (c) {
                 mostrarFichaComuna(c);
-                if (c.lat && c.lng) map.setView([c.lat, c.lng], 15);
+                if (c.lat && c.lng) map.setView([c.lat, c.lng], 14);
             }
             document.getElementById('resultados-busqueda').classList.add('hidden');
             document.getElementById('input-busqueda-global').value = '';
         }
 
+        // FICHA CON DIVISIÓN EN BOTONES / PESTAÑAS (COMUNAS DEL ESTADO / PROYECTOS CARGADOS)
         function mostrarFichaComuna(c, pestana = 'comuna') {
             pestanaActivaFicha = pestana;
             document.getElementById('titulo-panel-lateral').innerText = "Ficha Técnica Integral";
@@ -499,6 +504,7 @@
             let cid = obtenerId(c);
             let ccs = Array.isArray(c.consejos_comunales) ? c.consejos_comunales : [];
 
+            // Generación de lista de Consejos Comunales para la Pestaña Comuna
             let ccsHtml = ccs.map((cc, i) => {
                 let nombreCC = typeof cc === 'string' ? cc : cc.nombre;
                 let voceria = cc.voceria_estatus || "Vigente";
@@ -515,6 +521,7 @@
                 </div>`;
             }).join('');
 
+            // Opciones de Estatus de Proyecto
             const estatusOpciones = ["Borrador", "Pre-evaluación", "En Evaluación", "En Ejecución", "Culminado"];
             let comboEstatusHtml = estatusOpciones.map(est => 
                 `<option value="${est}" ${c.estatus_proyecto === est ? 'selected' : ''}>${est}</option>`
@@ -532,12 +539,6 @@
             `;
 
             let cuerpoFicha = '';
-
-            // CONTROL DE ROL: ANALISTAS NO PUEDEN EDITAR CONSEJOS COMUNALES
-            let esAnalista = usuarioActual && usuarioActual.rol === 'Analista';
-            let botonEditarCC = !esAnalista ? 
-                `<button onclick="abrirModalEditarCC('${cid}')" class="text-[10px] bg-indigo-600 hover:bg-indigo-500 text-white px-2 py-0.5 rounded font-bold">✏️ Editar CCs</button>` : 
-                `<span class="text-[10px] text-slate-500 italic">Modo Lectura (Analista)</span>`;
 
             if (pestana === 'comuna') {
                 cuerpoFicha = `
@@ -565,7 +566,7 @@
                         <div class="bg-slate-900 p-3.5 rounded-xl border border-slate-800 space-y-2">
                             <div class="flex justify-between items-center">
                                 <span class="font-bold text-emerald-400 text-[11px] uppercase">👥 Consejos Comunales (${ccs.length})</span>
-                                ${botonEditarCC}
+                                <button onclick="abrirModalEditarCC('${cid}')" class="text-[10px] bg-indigo-600 hover:bg-indigo-500 text-white px-2 py-0.5 rounded font-bold">✏️ Editar CCs</button>
                             </div>
                             <div class="space-y-2 max-h-48 overflow-y-auto pr-1">${ccsHtml || '<p class="text-slate-500 italic">No hay consejos comunales cargados.</p>'}</div>
                         </div>
@@ -594,6 +595,7 @@
                             </div>
                         </div>
 
+                        <!-- MODIFICAR ESTATUS DE PROYECTO -->
                         <div class="bg-slate-900 p-3.5 rounded-xl border border-indigo-500/30 space-y-2">
                             <label class="block font-bold text-indigo-300 text-[11px] uppercase">⚡ Cambiar Estatus del Proyecto</label>
                             <div class="flex gap-2">
@@ -639,6 +641,7 @@
             panel.classList.remove('translate-x-full');
         }
 
+        // FUNCIONALIDAD PARA GUARDAR ESTATUS MODIFICADO
         async function guardarEstatusProyecto(idComuna) {
             let c = comunasData.find(item => obtenerId(item) === String(idComuna));
             if (!c) return;
@@ -646,7 +649,11 @@
             let nuevoEstatus = document.getElementById('select-cambio-estatus').value;
             c.estatus_proyecto = nuevoEstatus;
             
-            await guardarEnSupabase(idComuna, { estatus_proyecto: nuevoEstatus, estatus: nuevoEstatus });
+            try {
+                await supabaseClient.from('comunas').update({ estatus_proyecto: nuevoEstatus }).eq('id', c.id);
+            } catch (e) {
+                console.error("Error al actualizar estatus en Supabase:", e);
+            }
 
             filtrarPorCiclo();
             mostrarFichaComuna(c, 'proyecto');
@@ -659,7 +666,11 @@
 
             c.emblematico = !c.emblematico;
 
-            await guardarEnSupabase(idComuna, { emblematico: c.emblematico });
+            try {
+                await supabaseClient.from('comunas').update({ emblematico: c.emblematico }).eq('id', c.id);
+            } catch (e) {
+                console.error("Error al actualizar emblemático en Supabase:", e);
+            }
 
             filtrarPorCiclo();
             mostrarFichaComuna(c, pestanaActivaFicha);
@@ -676,10 +687,14 @@
             c.ejecucion_fisica = Math.min(100, Math.max(0, fis));
             c.ejecucion_financiera = Math.min(100, Math.max(0, fin));
 
-            await guardarEnSupabase(idComuna, { 
-                ejecucion_fisica: c.ejecucion_fisica, 
-                ejecucion_financiera: c.ejecucion_financiera 
-            });
+            try {
+                await supabaseClient.from('comunas').update({ 
+                    ejecucion_fisica: c.ejecucion_fisica,
+                    ejecucion_financiera: c.ejecucion_financiera 
+                }).eq('id', c.id);
+            } catch (e) {
+                console.error("Error al actualizar ejecución en Supabase:", e);
+            }
 
             filtrarPorCiclo();
             mostrarFichaComuna(c, 'proyecto');
@@ -714,20 +729,18 @@
             let texto = document.getElementById('textarea-nudo-critico').value.trim();
             c.nudo_critico = texto || "Sin reporte de nudos críticos.";
 
-            await guardarEnSupabase(idComuna, { nudo_critico: c.nudo_critico });
+            try {
+                await supabaseClient.from('comunas').update({ nudo_critico: c.nudo_critico }).eq('id', c.id);
+            } catch (e) {
+                console.error("Error al actualizar nudo crítico en Supabase:", e);
+            }
 
             filtrarPorCiclo();
             mostrarFichaComuna(c, 'proyecto');
             alert("Nudo crítico guardado y actualizado con éxito.");
         }
 
-        // VALIDACIÓN RIGUROSA PARA IMPEDIR EDICIÓN DE CC POR ROL DE ANALISTA
         function abrirModalEditarCC(idComuna) {
-            if (usuarioActual && usuarioActual.rol === 'Analista') {
-                alert("🔒 Acceso Restringido: Los usuarios con rol de Analista no tienen permisos para modificar o editar los consejos comunales.");
-                return;
-            }
-
             let c = comunasData.find(item => obtenerId(item) === String(idComuna));
             if (!c) return;
 
@@ -762,11 +775,6 @@
 
         async function guardarCCs(e, idComuna) {
             e.preventDefault();
-            if (usuarioActual && usuarioActual.rol === 'Analista') {
-                alert("🔒 No tienes permisos para realizar esta acción.");
-                return;
-            }
-
             let c = comunasData.find(item => obtenerId(item) === String(idComuna));
             if (!c) return;
 
@@ -779,14 +787,18 @@
 
             c.consejos_comunales = nuevosCCs;
 
-            await guardarEnSupabase(idComuna, { consejos_comunales: nuevosCCs });
+            try {
+                await supabaseClient.from('comunas').update({ consejos_comunales: c.consejos_comunales }).eq('id', c.id);
+            } catch (e) {
+                console.error("Error al actualizar consejos comunales en Supabase:", e);
+            }
 
             filtrarPorCiclo();
             mostrarFichaComuna(c, 'comuna');
             alert("¡Consejos comunales actualizados con éxito!");
         }
 
-        // FICHA ESTADÍSTICA CON DESPLIEGUE MULTINIVEL: MUNICIPIO -> PARROQUIA -> PROYECTOS
+        // FICHA ESTADÍSTICA TOTAL CON DESPLIEGUE POR MUNICIPIO Y BOTÓN DE EXPORTAR DATA
         function abrirFichaEstadistica() {
             document.getElementById('titulo-panel-lateral').innerText = "Ficha Estadística y Exportación";
             const panel = document.getElementById('ficha-comuna');
@@ -794,46 +806,33 @@
             let dataset = comunasData.filter(c => String(c.consulta || "7") === String(cicloActual));
             let total = dataset.length;
 
-            let listaMunicipiosHtml = Object.keys(municipiosCoordenadas).map(m => {
-                let proysMunicipio = dataset.filter(c => c.municipio === m);
-                let listaParroquiasOficiales = parroquiasPorMunicipio[m] || ["General"];
+            let municipiosContadores = {};
+            Object.keys(municipiosCoordenadas).forEach(m => {
+                municipiosContadores[m] = dataset.filter(c => c.municipio === m);
+            });
 
-                let parroquiasHtml = listaParroquiasOficiales.map(p => {
-                    let proysParroquia = proysMunicipio.filter(item => item.parroquia === p);
-                    
-                    let proysListHtml = proysParroquia.map(proy => {
-                        let pid = obtenerId(proy);
-                        return `
-                        <div onclick="seleccionarResultadoBusqueda('${pid}')" class="bg-slate-950 p-2 rounded border border-slate-800 hover:border-indigo-500 cursor-pointer text-xs space-y-0.5">
-                            <div class="flex justify-between font-bold text-white">
-                                <span>${proy.nombre}</span>
-                                <span class="text-[10px] text-amber-400">${proy.estatus_proyecto}</span>
-                            </div>
-                            <p class="text-[11px] text-slate-300">📌 ${proy.proyectos}</p>
-                        </div>`;
-                    }).join('');
-
+            let listaMunicipiosHtml = Object.keys(municipiosContadores).map(m => {
+                let listProys = municipiosContadores[m];
+                let proysHtml = listProys.map(p => {
+                    let pid = obtenerId(p);
                     return `
-                    <div class="bg-slate-900 border border-slate-800/80 rounded-lg overflow-hidden ml-2">
-                        <button onclick="toggleDesgloseElemento('desglose-parr-${m}-${p.replace(/\s+/g, '')}')" class="w-full p-2 flex justify-between items-center hover:bg-slate-800/60 transition-all text-[11px] font-semibold text-slate-300">
-                            <span>🏛️ Parroquia: ${p}</span>
-                            <span class="bg-indigo-500/20 text-indigo-300 px-2 py-0.5 rounded text-[9px] font-bold">${proysParroquia.length} Proyectos</span>
-                        </button>
-                        <div id="desglose-parr-${m}-${p.replace(/\s+/g, '')}" class="hidden p-2 bg-slate-950/60 border-t border-slate-800 space-y-1.5">
-                            ${proysListHtml || '<p class="text-slate-500 text-[10px] italic">No existen proyectos en esta parroquia.</p>'}
+                    <div onclick="seleccionarResultadoBusqueda('${pid}')" class="bg-slate-950 p-2 rounded border border-slate-800 hover:border-indigo-500 cursor-pointer text-xs space-y-0.5">
+                        <div class="flex justify-between font-bold text-white">
+                            <span>${p.nombre}</span>
+                            <span class="text-[10px] text-amber-400">${p.estatus_proyecto}</span>
                         </div>
+                        <p class="text-[11px] text-slate-300">${p.proyectos}</p>
                     </div>`;
                 }).join('');
 
                 return `
                 <div class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
-                    <button onclick="toggleDesgloseElemento('desglose-mun-${m.replace(/\s+/g, '')}')" class="w-full p-3 flex justify-between items-center hover:bg-slate-800/80 transition-all text-xs font-bold text-slate-200">
-                        <span class="flex items-center gap-2">📍 Municipio ${m}</span>
-                        <span class="bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 px-2.5 py-0.5 rounded-lg text-[10px]">${proysMunicipio.length} Proyectos</span>
+                    <button onclick="toggleDesgloseMunicipio('${m}')" class="w-full p-3 flex justify-between items-center hover:bg-slate-800/80 transition-all text-xs font-bold text-slate-200">
+                        <span class="flex items-center gap-2">📍 ${m}</span>
+                        <span class="bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 px-2.5 py-0.5 rounded-lg text-[10px]">${listProys.length} Proyectos</span>
                     </button>
-                    <div id="desglose-mun-${m.replace(/\s+/g, '')}" class="hidden p-2.5 bg-slate-950/50 border-t border-slate-800 space-y-2">
-                        <p class="text-[10px] text-slate-400 font-medium uppercase px-1">Seleccione una parroquia:</p>
-                        ${parroquiasHtml}
+                    <div id="desglose-mun-${m}" class="hidden p-2.5 bg-slate-950/50 border-t border-slate-800 space-y-2">
+                        ${proysHtml || '<p class="text-slate-500 text-[10px] italic">No hay proyectos asignados en este municipio.</p>'}
                     </div>
                 </div>`;
             }).join('');
@@ -851,7 +850,7 @@
                     </div>
 
                     <div class="space-y-2">
-                        <span class="font-bold text-slate-300 block">Seleccione un Municipio para desplegar sus Parroquias y Proyectos:</span>
+                        <span class="font-bold text-slate-300 block">Seleccione un Municipio para desplegar sus proyectos:</span>
                         ${listaMunicipiosHtml}
                     </div>
                 </div>
@@ -859,11 +858,12 @@
             panel.classList.remove('translate-x-full');
         }
 
-        function toggleDesgloseElemento(idElemento) {
-            let el = document.getElementById(idElemento);
+        function toggleDesgloseMunicipio(m) {
+            let el = document.getElementById(`desglose-mun-${m}`);
             if (el) el.classList.toggle('hidden');
         }
 
+        // FUNCIONALIDAD PARA EXPORTAR INFORMACIÓN EN FORMATO CSV
         function exportarInformacionExcel() {
             let dataset = comunasData.filter(c => String(c.consulta || "7") === String(cicloActual));
             
@@ -1029,31 +1029,64 @@
             panel.classList.remove('translate-x-full');
         }
 
-        function guardarEdicionUsuario(idx) {
+        async function guardarEdicionUsuario(idx) {
+            let user = usuariosSistema[idx];
             let p = document.getElementById(`edit-pass-${idx}`).value.trim();
             let r = document.getElementById(`edit-rol-${idx}`).value;
             if (p) {
-                usuariosSistema[idx].pass = p;
-                usuariosSistema[idx].rol = r;
-                alert(`Usuario ${usuariosSistema[idx].usuario} actualizado con éxito.`);
+                user.pass = p;
+                user.rol = r;
+
+                try {
+                    if (user.id) {
+                        await supabaseClient.from('usuarios').update({ pass: p, rol: r }).eq('id', user.id);
+                    }
+                } catch (e) {
+                    console.error("Error al actualizar usuario en Supabase:", e);
+                }
+
+                alert(`Usuario ${user.usuario} actualizado con éxito.`);
                 abrirGestionUsuarios();
             }
         }
 
-        function eliminarUsuario(idx) {
-            if (confirm(`¿Seguro que deseas eliminar al usuario ${usuariosSistema[idx].usuario}?`)) {
+        async function eliminarUsuario(idx) {
+            let user = usuariosSistema[idx];
+            if (confirm(`¿Seguro que deseas eliminar al usuario ${user.usuario}?`)) {
+                try {
+                    if (user.id) {
+                        await supabaseClient.from('usuarios').delete().eq('id', user.id);
+                    }
+                } catch (e) {
+                    console.error("Error al eliminar usuario en Supabase:", e);
+                }
+
                 usuariosSistema.splice(idx, 1);
                 abrirGestionUsuarios();
             }
         }
 
-        function crearUser(e) {
+        async function crearUser(e) {
             e.preventDefault();
             let u = document.getElementById('nu-u').value.trim();
             let p = document.getElementById('nu-p').value.trim();
             let r = document.getElementById('nu-r').value;
             if (u && p) {
-                usuariosSistema.push({ id: Date.now(), usuario: u, pass: p, rol: r });
+                let nuevoUsuario = { usuario: u, pass: p, rol: r };
+
+                try {
+                    const { data, error } = await supabaseClient.from('usuarios').insert([nuevoUsuario]).select();
+                    if (data && data.length > 0) {
+                        usuariosSistema.push(data[0]);
+                    } else {
+                        nuevoUsuario.id = Date.now();
+                        usuariosSistema.push(nuevoUsuario);
+                    }
+                } catch (err) {
+                    nuevoUsuario.id = Date.now();
+                    usuariosSistema.push(nuevoUsuario);
+                }
+
                 alert(`Usuario ${u} registrado correctamente.`);
                 abrirGestionUsuarios();
             }
