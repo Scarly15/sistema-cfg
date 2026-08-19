@@ -1,1006 +1,1213 @@
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script>
-    const SUPABASE_URL = 'https://pmjgcfushafjiqziwtjr.supabase.co';
-    const SUPABASE_ANON_KEY = 'sb_publishable_awAA6RvlPzMoHUyDhMzf_Q_6BFJlgQw';
-    let supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    
-    let map;
-    let comunasData = [];
-    let cicloActual = "7";
-    let marcadoresLayer = L.layerGroup();
-    let usuarioActual = null;
-    let chartSectoresInstance = null;
-    let pestanaActivaFicha = 'comuna';
-
-    const sectoresLista = [
-        "Agua Potable", "Aguas Servidas", "Electricidad", "Vialidad", 
-        "Salud", "Educación", "Vivienda", "Productivo", "Deporte/Recreación", "General"
-    ];
-
-    const municipiosMap = {
-        1: "Iribarren", 2: "Palavecino", 3: "Jiménez", 4: "Morán",
-        5: "Andrés Eloy Blanco", 6: "Torres", 7: "Simón Planas", 8: "Crespo", 9: "Urdaneta"
-    };
-
-    const municipiosCoordenadas = {
-        "Iribarren": { lat: 10.0678, lng: -69.3474, zoom: 12 },
-        "Palavecino": { lat: 10.2435, lng: -69.2631, zoom: 13 },
-        "Jiménez": { lat: 9.9791, lng: -69.7854, zoom: 12 },
-        "Morán": { lat: 9.7811, lng: -69.7981, zoom: 12 },
-        "Andrés Eloy Blanco": { lat: 9.6833, lng: -69.6500, zoom: 12 },
-        "Torres": { lat: 10.1211, lng: -70.0801, zoom: 11 },
-        "Simón Planas": { lat: 9.8078, lng: -69.0528, zoom: 12 },
-        "Crespo": { lat: 10.2833, lng: -69.1000, zoom: 12 },
-        "Urdaneta": { lat: 10.5500, lng: -69.4500, zoom: 11 }
-    };
-
-    const parroquiasPorMunicipio = {
-        "Iribarren": ["Concepción", "Catedral", "Santa Rosa", "Unión", "El Cují", "Tamaca", "Juan de Villegas", "Aguedo Felipe Alvarado", "Buena Vista", "Juares"],
-        "Palavecino": ["Cabudare", "José Gregorio Bastidas", "Agua Viva"],
-        "Jiménez": ["Quíbor", "Diego de Lozada", "José Bernardo Dorante", "Paraíso de San José", "San Miguel", "Cuara", "Paso Real"],
-        "Morán": ["Bolívar", "Anzoátegui", "Guárico", "Hilario Luna y Luna", "Humocaro Alto", "Humocaro Bajo", "La Concordia", "La Joaquina"],
-        "Andrés Eloy Blanco": ["Pío Tamayo", "Yacambú", "Quebrada Honda de Guache"],
-        "Torres": ["Trinidad Samuel", "Antonio Díaz", "Camacaro", "Castañeda", "Chiquinquirá", "Espinoza de los Monteros", "Lara", "Manuel Morillo", "Montaña Verde", "Montes de Oca", "Torres"],
-        "Simón Planas": ["Sarare", "Buría", "Gustavo Vegas León"],
-        "Crespo": ["Freitez", "José María Blanco"],
-        "Urdaneta": ["Siquisique", "Moroturo", "San Miguel", "Xaguas"]
-    };
-
-    const comunasRespaldo = [
-        { 
-            id: "COM-001",
-            codigo: "COM-001-IRIB",
-            nombre: "Comuna Piloto Lara", 
-            municipio: "Iribarren", 
-            parroquia: "Concepción",
-            banco_cuenta: "0102-0123-45-0000123456",
-            banco_nombre: "Banco de Venezuela",
-            rif: "J-400123456",
-            lat: 10.0600, lng: -69.3300, 
-            consejos_comunales: [
-                { nombre: "CC La Batalla", voceria_estatus: "Vigente", proyectos: ["Reparación de cloacas"] },
-                { nombre: "CC Ruiz Pineda", voceria_estatus: "Vencida", proyectos: ["Alumbrado principal"] },
-                { nombre: "CC 12 de Octubre", voceria_estatus: "Vigente", proyectos: [] }
-            ],
-            proyectos: "Sustitución Colectores de Aguas Servidas",
-            monto_asignado: 150000.00,
-            cc_ejecutor: "CC La Batalla",
-            estatus_proyecto: "Borrador",
-            ejecucion_fisica: 15,
-            ejecucion_financiera: 20,
-            nudo_critico: "Falta de tubería PVC de 10 pulgadas.",
-            sector: "Aguas Servidas",
-            consulta: "7",
-            emblematico: false
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> Monitoreo Territorial URE LARA | Consejo Federal de Gobierno </title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        #map { height: calc(100vh - 4rem); z-index: 10; }
+        .leaflet-popup-content-wrapper, .leaflet-popup-tip {
+            background-color: #0f172a !important;
+            color: #f8fafc !important;
+            border: 1px solid #334155;
+            border-radius: 0.75rem;
         }
-    ];
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans antialiased overflow-hidden">
 
-    let usuariosSistema = [
-        { id: 1, usuario: 'scarly_creadora', pass: 'cfg2026', rol: 'Creadora' },
-        { id: 2, usuario: 'admin_cfg', pass: 'admin123', rol: 'Administrador' },
-        { id: 3, usuario: 'analista_lara', pass: 'lara2026', rol: 'Analista' }
-    ];
-
-    function obtenerId(c) {
-        return String(c.id || c.id_comuna || c.codigo || '');
-    }
-
-    function handleLogin(event) {
-        event.preventDefault();
-        const u = document.getElementById('username').value.trim();
-        const p = document.getElementById('password').value.trim();
-        const enc = usuariosSistema.find(user => user.usuario === u && user.pass === p);
-        if (enc) {
-            usuarioActual = enc;
-            document.getElementById('login-screen').classList.add('hidden');
-            document.getElementById('app-screen').classList.remove('hidden');
-            document.getElementById('user-display').innerText = `👤 ${enc.usuario} (${enc.rol})`;
-
-            if (enc.rol === 'Administrador' || enc.rol === 'Creadora') {
-                document.getElementById('btn-admin-usuarios').classList.remove('hidden');
-            } else {
-                document.getElementById('btn-admin-usuarios').classList.add('hidden');
-            }
-
-            setTimeout(() => { initMap(); cargarDatos(); }, 100);
-        } else {
-            alert("Usuario o contraseña incorrectos.");
-        }
-    }
-
-    function handleLogout() {
-        document.getElementById('app-screen').classList.add('hidden');
-        document.getElementById('login-screen').classList.remove('hidden');
-    }
-
-    function initMap() {
-        if (!map) {
-            map = L.map('map').setView([10.0678, -69.3474], 9);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { 
-                maxZoom: 19,
-                attribution: '© OpenStreetMap contributors'
-            }).addTo(map);
-            marcadoresLayer.addTo(map);
-        }
-    }
-
-    async function cargarDatos() {
-        try {
-            const { data, error } = await supabaseClient.from('comunas').select('*');
-            if (error || !data || data.length === 0) throw error || new Error();
-            
-            comunasData = data.map(item => ({
-                ...item,
-                id: String(item.id || item.id_comuna || item.codigo),
-                municipio: typeof item.municipio === 'number' ? (municipiosMap[item.municipio] || `Municipio ${item.municipio}`) : (item.municipio || "Iribarren"),
-                parroquia: item.parroquia || "Concepción",
-                codigo: item.codigo || "COM-CFG",
-                rif: item.rif || "J-000000000",
-                banco_cuenta: item.banco_cuenta || "0102-0000-00-0000000000",
-                banco_nombre: item.banco_nombre || "Banco de Venezuela",
-                monto_asignado: item.monto_asignado || 0,
-                cc_ejecutor: item.cc_ejecutor || "No Especificado",
-                estatus_proyecto: item.estatus_proyecto || item.estatus || "Borrador",
-                ejecucion_fisica: item.ejecucion_fisica || 0,
-                ejecucion_financiera: item.ejecucion_financiera || 0,
-                nudo_critico: item.nudo_critico || "Sin reporte de nudos críticos.",
-                sector: item.sector || "General",
-                emblematico: item.emblematico || false
-            }));
-        } catch (err) {
-            comunasData = [...comunasRespaldo];
-        }
-        filtrarPorCiclo();
-    }
-
-    /* ========================================================
-       FUNCIÓN PRINCIPAL PARA GUARDAR CAMBIOS EN SUPABASE
-    ======================================================== */
-    async function actualizarComunaEnSupabase(comunaObjeto) {
-        try {
-            // Intentar actualizar usando la columna primaria 'id'
-            const { data, error } = await supabaseClient
-                .from('comunas')
-                .update({
-                    estatus_proyecto: comunaObjeto.estatus_proyecto,
-                    ejecucion_fisica: comunaObjeto.ejecucion_fisica,
-                    ejecucion_financiera: comunaObjeto.ejecucion_financiera,
-                    nudo_critico: comunaObjeto.nudo_critico,
-                    emblematico: comunaObjeto.emblematico,
-                    consejos_comunales: comunaObjeto.consejos_comunales
-                })
-                .eq('id', comunaObjeto.id);
-
-            if (error) {
-                console.warn("No se pudo actualizar por 'id', intentando por 'codigo'...", error);
-                // Respaldo por la columna 'codigo' en caso de divergencia de esquemas
-                await supabaseClient
-                    .from('comunas')
-                    .update({
-                        estatus_proyecto: comunaObjeto.estatus_proyecto,
-                        ejecucion_fisica: comunaObjeto.ejecucion_fisica,
-                        ejecucion_financiera: comunaObjeto.ejecucion_financiera,
-                        nudo_critico: comunaObjeto.nudo_critico,
-                        emblematico: comunaObjeto.emblematico,
-                        consejos_comunales: comunaObjeto.consejos_comunales
-                    })
-                    .eq('codigo', comunaObjeto.codigo);
-            }
-            return true;
-        } catch (err) {
-            console.error("Error guardando en Supabase:", err);
-            return false;
-        }
-    }
-
-    function cambiarCicloConsulta(val) { cicloActual = val; filtrarPorCiclo(); }
-
-    function filtrarPorCiclo() {
-        let filtrados = comunasData.filter(c => String(c.consulta || "7") === String(cicloActual));
-        actualizarPipeline(filtrados);
-        renderizarMapa(filtrados);
-    }
-
-    function actualizarPipeline(data) {
-        document.getElementById('total-proyectos-cargados').innerText = `${data.length} Proyectos`;
-        document.getElementById('cant-borrador').innerText = data.filter(c => c.estatus_proyecto === 'Borrador').length;
-        document.getElementById('cant-preeval').innerText = data.filter(c => c.estatus_proyecto === 'Pre-evaluación').length;
-        document.getElementById('cant-eval').innerText = data.filter(c => c.estatus_proyecto === 'En Evaluación').length;
-        document.getElementById('cant-ejec').innerText = data.filter(c => c.estatus_proyecto === 'En Ejecución').length;
-        document.getElementById('cant-culminado').innerText = data.filter(c => c.estatus_proyecto === 'Culminado').length;
-        document.getElementById('cant-emblematicos').innerText = data.filter(c => c.emblematico === true).length;
-    }
-
-    function renderizarMapa(data) {
-        marcadoresLayer.clearLayers();
-        data.forEach(c => {
-            if (c.lat && c.lng) {
-                let col = '#6366f1';
-                if (c.estatus_proyecto === 'En Ejecución') col = '#f59e0b';
-                else if (c.estatus_proyecto === 'Culminado') col = '#10b981';
-
-                let embTag = c.emblematico ? '⭐ ' : '';
-
-                let icon = L.divIcon({
-                    className: 'pin',
-                    html: `<div style="background:${col}; width:${c.emblematico ? '20px' : '16px'}; height:${c.emblematico ? '20px' : '16px'}; border-radius:50%; border:2px solid ${c.emblematico ? '#fbbf24' : 'white'};"></div>`
-                });
-
-                let m = L.marker([c.lat, c.lng], { icon: icon });
-                m.bindPopup(`<b>${embTag}${c.nombre}</b><br>Municipio: ${c.municipio}<br>Parroquia: ${c.parroquia}<br>Sector: <b>${c.sector || 'General'}</b><br>Estatus: ${c.estatus_proyecto}`);
-                m.on('click', () => { mostrarFichaComuna(c); map.setView([c.lat, c.lng], 15); });
-                marcadoresLayer.addLayer(m);
-            }
-        });
-    }
-
-    function buscarComunaOConsojo(val) {
-        let term = val.trim().toLowerCase();
-        let box = document.getElementById('resultados-busqueda');
-        
-        if (!term) {
-            box.classList.add('hidden');
-            box.innerHTML = '';
-            return;
-        }
-
-        let resultados = [];
-        let dataset = comunasData.filter(c => String(c.consulta || "7") === String(cicloActual));
-
-        dataset.forEach(c => {
-            let coincideComuna = c.nombre.toLowerCase().includes(term) || (c.codigo && c.codigo.toLowerCase().includes(term));
-            let ccs = Array.isArray(c.consejos_comunales) ? c.consejos_comunales : [];
-            let ccsCoincidentes = ccs.filter(cc => {
-                let nom = typeof cc === 'string' ? cc : cc.nombre;
-                return nom.toLowerCase().includes(term);
-            });
-
-            if (coincideComuna || ccsCoincidentes.length > 0) {
-                resultados.push({ comuna: c, ccsCoincidentes: ccsCoincidentes, esComunaDirecta: coincideComuna });
-            }
-        });
-
-        if (resultados.length === 0) {
-            box.innerHTML = `<div class="p-3 text-xs text-slate-400 italic">No se encontraron resultados para "${val}".</div>`;
-        } else {
-            box.innerHTML = resultados.map(r => {
-                let c = r.comuna;
-                let cid = obtenerId(c);
-                let detalleCC = r.ccsCoincidentes.length > 0 ? 
-                    `<div class="text-[10px] text-emerald-400 font-semibold mt-0.5">👥 CC Coincidente: ${r.ccsCoincidentes.map(x => typeof x === 'string' ? x : x.nombre).join(', ')}</div>` : '';
-                
-                return `
-                    <div onclick="seleccionarResultadoBusqueda('${cid}')" class="p-2.5 hover:bg-slate-800/80 cursor-pointer transition-all space-y-0.5">
-                        <div class="flex justify-between items-center">
-                            <span class="font-bold text-xs text-indigo-300">${c.emblematico ? '⭐ ' : ''}${c.nombre} <span class="text-[10px] text-slate-500">(${c.codigo || 'COM'})</span></span>
-                            <span class="text-[9px] bg-indigo-500/10 text-indigo-400 px-2 py-0.5 rounded border border-indigo-500/20">${c.municipio} - ${c.parroquia}</span>
-                        </div>
-                        <p class="text-[11px] text-slate-300 font-medium">📌 Proyecto: ${c.proyectos || 'Sin proyecto asignado'}</p>
-                        ${detalleCC}
-                    </div>
-                `;
-            }).join('');
-        }
-        box.classList.remove('hidden');
-    }
-
-    function seleccionarResultadoBusqueda(id) {
-        let c = comunasData.find(x => obtenerId(x) === String(id));
-        if (c) {
-            mostrarFichaComuna(c);
-            if (c.lat && c.lng) map.setView([c.lat, c.lng], 15);
-        }
-        document.getElementById('resultados-busqueda').classList.add('hidden');
-        document.getElementById('input-busqueda-global').value = '';
-    }
-
-    function mostrarFichaComuna(c, pestana = 'comuna') {
-        pestanaActivaFicha = pestana;
-        document.getElementById('titulo-panel-lateral').innerText = "Ficha Técnica Integral";
-        const panel = document.getElementById('ficha-comuna');
-
-        let cid = obtenerId(c);
-        let ccs = Array.isArray(c.consejos_comunales) ? c.consejos_comunales : [];
-
-        let ccsHtml = ccs.map((cc, i) => {
-            let nombreCC = typeof cc === 'string' ? cc : cc.nombre;
-            let voceria = cc.voceria_estatus || "Vigente";
-            let proys = cc.proyectos && cc.proyectos.length > 0 ? cc.proyectos.join(', ') : 'Sin proyectos individuales';
-            let badgeCol = voceria === 'Vigente' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-red-500/20 text-red-400';
-            
-            return `
-            <div class="bg-slate-900 p-2.5 rounded-lg border border-slate-800 text-xs space-y-1">
-                <div class="flex justify-between items-center">
-                    <span class="text-white font-bold">${i+1}. ${nombreCC}</span>
-                    <span class="text-[9px] ${badgeCol} px-2 py-0.5 rounded font-bold">${voceria}</span>
-                </div>
-                <p class="text-[10px] text-slate-400">Proyectos Afiliados: <b class="text-slate-300">${proys}</b></p>
-            </div>`;
-        }).join('');
-
-        const estatusOpciones = ["Borrador", "Pre-evaluación", "En Evaluación", "En Ejecución", "Culminado"];
-        let comboEstatusHtml = estatusOpciones.map(est => 
-            `<option value="${est}" ${c.estatus_proyecto === est ? 'selected' : ''}>${est}</option>`
-        ).join('');
-
-        let htmlTabsNav = `
-            <div class="flex border-b border-slate-800 mb-4 bg-slate-900 p-1 rounded-xl">
-                <button onclick="mostrarFichaComuna(comunasData.find(x=>obtenerId(x)==='${cid}'), 'comuna')" class="flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${pestana === 'comuna' ? 'bg-indigo-600 text-white shadow' : 'text-slate-400 hover:text-white'}">
-                    🏛️ Comunas del Estado
-                </button>
-                <button onclick="mostrarFichaComuna(comunasData.find(x=>obtenerId(x)==='${cid}'), 'proyecto')" class="flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${pestana === 'proyecto' ? 'bg-indigo-600 text-white shadow' : 'text-slate-400 hover:text-white'}">
-                    📋 Proyectos Cargados
-                </button>
+    <!-- LOGIN -->
+    <div id="login-screen" class="min-h-screen flex items-center justify-center bg-slate-950 px-4 z-50 relative">
+        <div class="max-w-md w-full bg-slate-900 border border-slate-800 p-8 rounded-2xl shadow-2xl">
+            <div class="text-center mb-6">
+                <span class="bg-indigo-500/10 text-indigo-400 text-xs font-semibold px-3 py-1 rounded-full border border-indigo-500/20">CFG LARA</span>
+                <h1 class="text-2xl font-bold mt-2 text-white">Monitoreo Territorial LARA</h1>
             </div>
-        `;
-
-        let cuerpoFicha = '';
-
-        let esAnalista = usuarioActual && usuarioActual.rol === 'Analista';
-        let botonEditarCC = !esAnalista ? 
-            `<button onclick="abrirModalEditarCC('${cid}')" class="text-[10px] bg-indigo-600 hover:bg-indigo-500 text-white px-2 py-0.5 rounded font-bold">✏️ Editar CCs</button>` : 
-            `<span class="text-[10px] text-slate-500 italic">Modo Lectura (Analista)</span>`;
-
-        if (pestana === 'comuna') {
-            cuerpoFicha = `
-                <div class="space-y-3 text-xs">
-                    <div class="bg-slate-900 p-3.5 rounded-xl border border-slate-800 space-y-2">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <h3 class="text-sm font-bold text-white">${c.nombre}</h3>
-                                <span class="text-[10px] text-indigo-400">Código: <b>${c.codigo || 'S/C'}</b></span>
-                            </div>
-                            <span class="bg-indigo-500/10 border border-indigo-500/30 text-indigo-300 px-2.5 py-1 rounded-lg text-[10px] font-bold">${c.municipio}</span>
-                        </div>
-                        <div class="text-slate-400">Parroquia: <b class="text-slate-200">${c.parroquia}</b></div>
-                    </div>
-
-                    <div class="bg-slate-900 p-3.5 rounded-xl border border-slate-800 space-y-2">
-                        <span class="font-bold text-amber-400 block text-[11px] uppercase">🏦 Datos Bancarios y Fiscales</span>
-                        <div class="space-y-1 text-slate-300">
-                            <div class="flex justify-between"><span>RIF Comunal:</span><b class="text-white">${c.rif || 'J-000000000'}</b></div>
-                            <div class="flex justify-between"><span>Banco:</span><b class="text-white">${c.banco_nombre || 'Banco de Venezuela'}</b></div>
-                            <div class="flex justify-between"><span>Cuenta Bancaria:</span><b class="text-indigo-300 font-mono">${c.banco_cuenta || 'N/D'}</b></div>
-                        </div>
-                    </div>
-
-                    <div class="bg-slate-900 p-3.5 rounded-xl border border-slate-800 space-y-2">
-                        <div class="flex justify-between items-center">
-                            <span class="font-bold text-emerald-400 text-[11px] uppercase">👥 Consejos Comunales (${ccs.length})</span>
-                            ${botonEditarCC}
-                        </div>
-                        <div class="space-y-2 max-h-48 overflow-y-auto pr-1">${ccsHtml || '<p class="text-slate-500 italic">No hay consejos comunales cargados.</p>'}</div>
-                    </div>
+            <form onsubmit="handleLogin(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 uppercase mb-1">Usuario</label>
+                    <input type="text" id="username" required class="w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-2.5 text-sm text-white outline-none focus:border-indigo-500" value="scarly_creadora">
                 </div>
-            `;
-        } else {
-            cuerpoFicha = `
-                <div class="space-y-3 text-xs">
-                    <div class="bg-slate-900 p-3.5 rounded-xl border border-slate-800 space-y-2">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <span class="text-[10px] text-amber-400 uppercase font-bold">Consulta Popular N° ${c.consulta || cicloActual}</span>
-                                <h3 class="text-sm font-bold text-white mt-0.5">${c.proyectos || 'Sin Nombre de Proyecto'}</h3>
-                            </div>
-                            <button onclick="toggleEmblematico('${cid}')" class="px-2.5 py-1 rounded-lg text-[10px] font-bold ${c.emblematico ? 'bg-amber-500 text-slate-950' : 'bg-slate-800 text-amber-300 border border-amber-500/30'}">
-                                ${c.emblematico ? '⭐ Emblemático' : '☆ Marcar Emblemático'}
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 uppercase mb-1">Contraseña</label>
+                    <input type="password" id="password" required class="w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-2.5 text-sm text-white outline-none focus:border-indigo-500" value="cfg2026">
+                </div>
+                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-2.5 rounded-lg text-sm transition-all cursor-pointer">Ingresar al Sistema</button>
+            </form>
+            <div class="mt-6 pt-4 border-t border-slate-800 text-center">
+                <p class="text-[11px] text-slate-400">Software Diseñado y Desarrollado por:</p>
+                <p class="text-xs font-bold text-indigo-400">Ing. Scarly Macareo <span class="text-slate-500 font-normal">| Creadora del Software</span></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div id="app-screen" class="hidden h-screen flex flex-col">
+        <header class="bg-slate-900 border-b border-slate-800 h-16 flex items-center justify-between px-6 z-30 gap-4">
+            <div class="flex items-center space-x-3 shrink-0">
+                <div class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center font-bold text-white text-xs">CFG</div>
+                <div class="flex flex-col">
+                    <span class="font-bold text-sm text-white hidden md:inline">Consejo Federal de Gobierno <span class="text-indigo-400 font-normal">| Control Territorial Lara</span></span>
+                    <span class="text-[10px] text-slate-400 hidden lg:inline">Desarrollo e Ingeniería: <b class="text-indigo-300">Ing. Scarly Macareo</b></span>
+                </div>
+            </div>
+
+            <div class="flex-1 max-w-xl relative">
+                <div class="relative">
+                    <input type="text" id="input-busqueda-global" oninput="buscarComunaOConsojo(this.value)" placeholder="🔍 Buscar por Consejo Comunal, Comuna o Código..." class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-4 py-1.5 text-xs text-white outline-none focus:border-indigo-500">
+                    <span class="absolute left-3 top-2 text-slate-500 text-xs">🔍</span>
+                </div>
+                <div id="resultados-busqueda" class="absolute left-0 right-0 top-10 bg-slate-900 border border-slate-800 rounded-xl shadow-2xl z-50 max-h-64 overflow-y-auto hidden divide-y divide-slate-800/50"></div>
+            </div>
+
+            <div class="flex items-center space-x-2 shrink-0">
+                <div class="flex items-center space-x-2 bg-slate-950 border border-slate-800 px-3 py-1.5 rounded-xl">
+                    <span class="text-[11px] text-slate-400 uppercase font-semibold hidden sm:inline">Ciclo:</span>
+                    <select id="select-ciclo-consulta" onchange="cambiarCicloConsulta(this.value)" class="bg-slate-900 text-indigo-300 text-xs font-bold border border-slate-700 rounded-lg px-2 py-1 outline-none">
+                        <option value="7">7ma Consulta Popular</option>
+                        <option value="8">8va Consulta Popular</option>
+                        <option value="9">9na Consulta Popular</option>
+                    </select>
+                </div>
+
+                <span id="user-display" class="text-xs bg-indigo-500/10 border border-indigo-500/30 px-3 py-1.5 rounded-full text-indigo-300"></span>
+                <button id="btn-admin-usuarios" onclick="abrirGestionUsuarios()" class="text-xs bg-purple-600 hover:bg-purple-500 text-white px-3 py-1.5 rounded-lg hidden">⚙️ Usuarios</button>
+                <button onclick="handleLogout()" class="text-xs bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 px-3 py-1.5 rounded-lg">Cerrar Sesión</button>
+            </div>
+        </header>
+
+        <div class="flex-1 flex overflow-hidden relative">
+            <aside class="w-80 bg-slate-900 border-r border-slate-800 flex flex-col p-4 space-y-3 z-20 overflow-y-auto justify-between">
+                <div class="space-y-3">
+                    <div>
+                        <label class="text-[11px] font-semibold text-slate-400 uppercase">Zoom por Municipio (9 Municipios)</label>
+                        <select id="select-municipio" onchange="zoomMunicipio(this.value)" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white outline-none mt-1">
+                            <option value="">Todos los Municipios</option>
+                            <option value="Iribarren">Iribarren</option>
+                            <option value="Palavecino">Palavecino</option>
+                            <option value="Jiménez">Jiménez</option>
+                            <option value="Morán">Morán</option>
+                            <option value="Andrés Eloy Blanco">Andrés Eloy Blanco</option>
+                            <option value="Torres">Torres</option>
+                            <option value="Simón Planas">Simón Planas</option>
+                            <option value="Crespo">Crespo</option>
+                            <option value="Urdaneta">Urdaneta</option>
+                        </select>
+                    </div>
+
+                    <div class="bg-slate-950 border border-slate-800 rounded-xl p-3 space-y-2">
+                        <div class="flex justify-between items-center text-xs font-bold text-slate-200">
+                            <span>ESTATUS DE PROYECTOS</span>
+                            <span id="total-proyectos-cargados" class="text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded">0 Proyectos</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-1.5 text-[11px]">
+                            <button onclick="filtrarPorEstatusProyecto('Borrador')" class="bg-slate-900 hover:bg-slate-800 border border-slate-800 p-2 rounded-lg text-left flex justify-between transition-all">
+                                <span class="text-slate-400">📝 Borrador</span>
+                                <span id="cant-borrador" class="font-bold text-slate-200">0</span>
+                            </button>
+                            <button onclick="filtrarPorEstatusProyecto('Pre-evaluación')" class="bg-slate-900 hover:bg-slate-800 border border-slate-800 p-2 rounded-lg text-left flex justify-between transition-all">
+                                <span class="text-sky-400">🔍 Pre-eval.</span>
+                                <span id="cant-preeval" class="font-bold text-sky-300">0</span>
+                            </button>
+                            <button onclick="filtrarPorEstatusProyecto('En Evaluación')" class="bg-slate-900 hover:bg-slate-800 border border-slate-800 p-2 rounded-lg text-left flex justify-between transition-all">
+                                <span class="text-purple-400">📋 Evaluac.</span>
+                                <span id="cant-eval" class="font-bold text-purple-300">0</span>
+                            </button>
+                            <button onclick="filtrarPorEstatusProyecto('En Ejecución')" class="bg-slate-900 hover:bg-slate-800 border border-slate-800 p-2 rounded-lg text-left flex justify-between transition-all">
+                                <span class="text-amber-400">⚡ Ejecución</span>
+                                <span id="cant-ejec" class="font-bold text-amber-300">0</span>
                             </button>
                         </div>
-                        <div class="pt-2 border-t border-slate-800 flex justify-between items-center text-slate-300">
-                            <span>Monto Asignado:</span>
-                            <b class="text-emerald-400 text-sm font-mono">$${(c.monto_asignado || 0).toLocaleString()}</b>
-                        </div>
-                        <div class="flex justify-between items-center text-slate-300">
-                            <span>CC Ejecutor:</span>
-                            <b class="text-indigo-300">${c.cc_ejecutor || 'Consejo Comunal Principal'}</b>
-                        </div>
+                        <button onclick="filtrarPorEstatusProyecto('Culminado')" class="w-full bg-emerald-950/60 hover:bg-emerald-900/60 border border-emerald-500/30 p-2 rounded-lg text-xs flex justify-between text-emerald-300 font-semibold transition-all">
+                            <span>🏁 Culminados / Verificados</span>
+                            <span id="cant-culminado" class="font-bold bg-emerald-500/20 px-2 py-0.5 rounded">0</span>
+                        </button>
+                        <button onclick="filtrarProyectosEmblematicos()" class="w-full bg-amber-950/40 hover:bg-amber-900/50 border border-amber-500/40 p-2 rounded-lg text-xs flex justify-between text-amber-300 font-bold transition-all">
+                            <span>⭐ Proyectos Emblemáticos</span>
+                            <span id="cant-emblematicos" class="font-bold bg-amber-500/20 px-2 py-0.5 rounded">0</span>
+                        </button>
                     </div>
 
-                    <div class="bg-slate-900 p-3.5 rounded-xl border border-indigo-500/30 space-y-2">
-                        <label class="block font-bold text-indigo-300 text-[11px] uppercase">⚡ Cambiar Estatus del Proyecto</label>
-                        <div class="flex gap-2">
-                            <select id="select-cambio-estatus" class="flex-1 bg-slate-950 border border-slate-800 rounded px-2.5 py-1.5 text-xs text-white outline-none focus:border-indigo-500">
-                                ${comboEstatusHtml}
-                            </select>
-                            <button onclick="guardarEstatusProyecto('${cid}')" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-3 py-1.5 rounded-lg text-xs">Guardar Estatus</button>
-                        </div>
+                    <div class="space-y-2">
+                        <button onclick="abrirFichaEstadistica()" class="w-full bg-slate-950 hover:bg-slate-800 border border-slate-800 text-blue-300 font-medium py-2 px-3 rounded-xl text-xs flex justify-between items-center transition-all">
+                            <span>📈 Resumen Estadístico Desplegable</span>
+                        </button>
+                        <button onclick="abrirMatrizPreferencias()" class="w-full bg-slate-950 hover:bg-slate-800 border border-slate-800 text-emerald-300 font-medium py-2 px-3 rounded-xl text-xs flex justify-between items-center transition-all">
+                            <span>📊 Sector de Inversión (Info)</span>
+                        </button>
+                        <button onclick="abrirGeneradorReportesIA()" class="w-full bg-slate-950 hover:bg-slate-800 border border-slate-800 text-indigo-300 font-medium py-2 px-3 rounded-xl text-xs flex justify-between items-center transition-all">
+                            <span>🤖 Reporte Ejecutivo y Consultas</span>
+                        </button>
                     </div>
 
-                    <div class="bg-slate-900 p-3.5 rounded-xl border border-slate-800 space-y-2">
-                        <span class="font-bold text-blue-400 block text-[11px] uppercase">📊 Ejecución Física y Financiera</span>
-                        <div class="space-y-2">
-                            <div>
-                                <div class="flex justify-between text-[10px] mb-1"><span class="text-slate-400">Ejecución Física:</span><b class="text-emerald-400">${c.ejecucion_fisica}%</b></div>
-                                <div class="w-full bg-slate-950 h-2 rounded-full overflow-hidden"><div class="bg-emerald-500 h-full" style="width: ${c.ejecucion_fisica}%"></div></div>
-                            </div>
-                            <div>
-                                <div class="flex justify-between text-[10px] mb-1"><span class="text-slate-400">Ejecución Financiera:</span><b class="text-blue-400">${c.ejecucion_financiera}%</b></div>
-                                <div class="w-full bg-slate-950 h-2 rounded-full overflow-hidden"><div class="bg-blue-500 h-full" style="width: ${c.ejecucion_financiera}%"></div></div>
-                            </div>
-                        </div>
-
-                        <div class="pt-2 border-t border-slate-800 grid grid-cols-2 gap-2 mt-2">
-                            <div><label class="text-[9px] text-slate-400">Actualizar % Físico</label><input type="number" id="input-ejec-fisica" min="0" max="100" value="${c.ejecucion_fisica}" class="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1 text-white"></div>
-                            <div><label class="text-[9px] text-slate-400">Actualizar % Financiero</label><input type="number" id="input-ejec-financiera" min="0" max="100" value="${c.ejecucion_financiera}" class="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1 text-white"></div>
-                        </div>
-                        <button onclick="guardarEjecucionManual('${cid}')" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-1.5 rounded text-xs mt-1">💾 Actualizar Avance</button>
-                    </div>
-
-                    <div class="bg-slate-900 p-3.5 rounded-xl border border-slate-800 space-y-1.5">
-                        <div class="flex justify-between items-center">
-                            <span class="text-[10px] text-red-400 font-bold uppercase">⚠️ Nudo Crítico / Obstáculo</span>
-                            <button onclick="abrirFormularioNudoCritico('${cid}')" class="text-[10px] bg-red-600/20 text-red-300 border border-red-500/30 px-2 py-0.5 rounded font-bold">✏️ Editar Nudo</button>
-                        </div>
-                        <p class="text-[11px] text-slate-300 italic bg-slate-950 p-2.5 rounded border border-slate-800/80">${c.nudo_critico || 'Sin reporte de nudos críticos.'}</p>
-                    </div>
+                    <button onclick="restablecerMapaCompleto()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 py-2 rounded-lg text-xs transition-all">🔄 Restablecer Mapa</button>
                 </div>
+
+                <div class="pt-3 border-t border-slate-800 text-center space-y-0.5">
+                    <p class="text-[10px] text-slate-400">Diseñado e Implementado por:</p>
+                    <p class="text-xs font-bold text-indigo-400">Ing. Scarly Macareo</p>
+                    <p class="text-[9px] text-slate-400">Creadora del Software de Monitoreo</p>
+                </div>
+            </aside>
+
+            <main class="flex-1 relative">
+                <div id="map"></div>
+            </main>
+
+            <!-- FICHA LATERAL DERECHA -->
+            <div id="ficha-comuna" class="absolute right-0 top-0 h-full w-[480px] bg-slate-950 border-l border-slate-800 shadow-2xl z-50 transform translate-x-full transition-transform duration-300 flex flex-col p-6 overflow-y-auto">
+                <div class="flex items-center justify-between pb-4 border-b border-slate-800">
+                    <span id="titulo-panel-lateral" class="text-xs font-semibold uppercase tracking-wider text-indigo-400">Ficha Técnica Comunal</span>
+                    <button onclick="cerrarFicha()" class="text-slate-400 hover:text-white bg-slate-900 w-8 h-8 rounded-full border border-slate-700 flex items-center justify-center">✕</button>
+                </div>
+                <div id="contenido-ficha" class="py-4 space-y-4 text-sm text-slate-100"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        const SUPABASE_URL = 'https://pmjgcfushafjiqziwtjr.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_awAA6RvlPzMoHUyDhMzf_Q_6BFJlgQw';
+        let supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        let map;
+        let comunasData = [];
+        let cicloActual = "7";
+        let marcadoresLayer = L.layerGroup();
+        let usuarioActual = null;
+        let chartSectoresInstance = null;
+        let pestanaActivaFicha = 'comuna';
+
+        const sectoresLista = [
+            "Agua Potable", "Aguas Servidas", "Electricidad", "Vialidad", 
+            "Salud", "Educación", "Vivienda", "Productivo", "Deporte/Recreación", "General"
+        ];
+
+        const municipiosMap = {
+            1: "Iribarren", 2: "Palavecino", 3: "Jiménez", 4: "Morán",
+            5: "Andrés Eloy Blanco", 6: "Torres", 7: "Simón Planas", 8: "Crespo", 9: "Urdaneta"
+        };
+
+        const municipiosCoordenadas = {
+            "Iribarren": { lat: 10.0678, lng: -69.3474, zoom: 12 },
+            "Palavecino": { lat: 10.2435, lng: -69.2631, zoom: 13 },
+            "Jiménez": { lat: 9.9791, lng: -69.7854, zoom: 12 },
+            "Morán": { lat: 9.7811, lng: -69.7981, zoom: 12 },
+            "Andrés Eloy Blanco": { lat: 9.6833, lng: -69.6500, zoom: 12 },
+            "Torres": { lat: 10.1211, lng: -70.0801, zoom: 11 },
+            "Simón Planas": { lat: 9.8078, lng: -69.0528, zoom: 12 },
+            "Crespo": { lat: 10.2833, lng: -69.1000, zoom: 12 },
+            "Urdaneta": { lat: 10.5500, lng: -69.4500, zoom: 11 }
+        };
+
+        const parroquiasPorMunicipio = {
+            "Iribarren": ["Concepción", "Catedral", "Santa Rosa", "Unión", "El Cují", "Tamaca", "Juan de Villegas", "Aguedo Felipe Alvarado", "Buena Vista", "Juares"],
+            "Palavecino": ["Cabudare", "José Gregorio Bastidas", "Agua Viva"],
+            "Jiménez": ["Quíbor", "Diego de Lozada", "José Bernardo Dorante", "Paraíso de San José", "San Miguel", "Cuara", "Paso Real"],
+            "Morán": ["Bolívar", "Anzoátegui", "Guárico", "Hilario Luna y Luna", "Humocaro Alto", "Humocaro Bajo", "La Concordia", "La Joaquina"],
+            "Andrés Eloy Blanco": ["Pío Tamayo", "Yacambú", "Quebrada Honda de Guache"],
+            "Torres": ["Trinidad Samuel", "Antonio Díaz", "Camacaro", "Castañeda", "Chiquinquirá", "Espinoza de los Monteros", "Lara", "Manuel Morillo", "Montaña Verde", "Montes de Oca", "Torres"],
+            "Simón Planas": ["Sarare", "Buría", "Gustavo Vegas León"],
+            "Crespo": ["Freitez", "José María Blanco"],
+            "Urdaneta": ["Siquisique", "Moroturo", "San Miguel", "Xaguas"]
+        };
+
+        const comunasRespaldo = [
+            { 
+                id: "COM-001",
+                codigo: "COM-001-IRIB",
+                nombre: "Comuna Piloto Lara", 
+                municipio: "Iribarren", 
+                parroquia: "Concepción",
+                banco_cuenta: "0102-0123-45-0000123456",
+                banco_nombre: "Banco de Venezuela",
+                rif: "J-400123456",
+                lat: 10.0600, lng: -69.3300, 
+                consejos_comunales: [
+                    { nombre: "CC La Batalla", voceria_estatus: "Vigente", proyectos: ["Reparación de cloacas"] },
+                    { nombre: "CC Ruiz Pineda", voceria_estatus: "Vencida", proyectos: ["Alumbrado principal"] },
+                    { nombre: "CC 12 de Octubre", voceria_estatus: "Vigente", proyectos: [] }
+                ],
+                proyectos: "Sustitución Colectores de Aguas Servidas",
+                monto_asignado: 150000.00,
+                cc_ejecutor: "CC La Batalla",
+                estatus_proyecto: "Borrador",
+                ejecucion_fisica: 15,
+                ejecucion_financiera: 20,
+                nudo_critico: "Falta de tubería PVC de 10 pulgadas.",
+                sector: "Aguas Servidas",
+                consulta: "7",
+                emblematico: false
+            },
+            { 
+                id: "COM-002",
+                codigo: "COM-002-SIMON",
+                nombre: "Comuna El Maizal", 
+                municipio: "Simón Planas", 
+                parroquia: "Sarare",
+                banco_cuenta: "0102-0987-65-0000654321",
+                banco_nombre: "Banco Bicentenario",
+                rif: "J-400987654",
+                lat: 9.8078, lng: -69.0528, 
+                consejos_comunales: [
+                    { nombre: "CC La Miel Centro", voceria_estatus: "Vigente", proyectos: ["Pozo de Agua Nro 1"] },
+                    { nombre: "CC Sabana Verde", voceria_estatus: "Vigente", proyectos: [] }
+                ],
+                proyectos: "Rehabilitación de Red de Agua Potable y Estación de Bombeo",
+                monto_asignado: 250000.00,
+                cc_ejecutor: "CC La Miel Centro",
+                estatus_proyecto: "Culminado",
+                ejecucion_fisica: 100,
+                ejecucion_financiera: 100,
+                nudo_critico: "Ninguno. Obra concluida de forma satisfactoria.",
+                sector: "Agua Potable",
+                consulta: "7",
+                emblematico: true
+            },
+            { 
+                id: "COM-003",
+                codigo: "COM-003-JIM",
+                nombre: "Comuna Quíbor Valle Lindo", 
+                municipio: "Jiménez", 
+                parroquia: "Quíbor",
+                banco_cuenta: "0102-0444-11-0000888999",
+                banco_nombre: "Banco del Tesoro",
+                rif: "J-300444888",
+                lat: 9.9791, lng: -69.7854, 
+                consejos_comunales: [{ nombre: "CC Quíbor Centro", voceria_estatus: "Vigente", proyectos: ["Bomba de Agua"] }],
+                proyectos: "Instalación de Sistema Agrícola de Riego",
+                monto_asignado: 180000.00,
+                cc_ejecutor: "CC Quíbor Centro",
+                estatus_proyecto: "En Ejecución",
+                ejecucion_fisica: 60,
+                ejecucion_financiera: 50,
+                nudo_critico: "Retraso en la entrega de mangueras de alta presión.",
+                sector: "Productivo",
+                consulta: "7",
+                emblematico: false
+            }
+        ];
+
+        let usuariosSistema = [
+            { id: 1, usuario: 'scarly_creadora', pass: 'cfg2026', rol: 'Creadora' },
+            { id: 2, usuario: 'admin_cfg', pass: 'admin123', rol: 'Administrador' },
+            { id: 3, usuario: 'analista_lara', pass: 'lara2026', rol: 'Analista' }
+        ];
+
+        function obtenerId(c) {
+            return String(c.id || c.id_comuna || c.codigo || '');
+        }
+
+        // PERSISTENCIA ASÍNCRONA EN SUPABASE
+        async function guardarEnSupabase(idComuna, datosActualizados) {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('comunas')
+                    .update(datosActualizados)
+                    .eq('id', idComuna);
+                if (error) {
+                    console.error("Error al guardar cambios en Supabase:", error);
+                }
+            } catch (err) {
+                console.error("Fallo de conexión persistente con Supabase:", err);
+            }
+        }
+
+        function handleLogin(event) {
+            event.preventDefault();
+            const u = document.getElementById('username').value.trim();
+            const p = document.getElementById('password').value.trim();
+            const enc = usuariosSistema.find(user => user.usuario === u && user.pass === p);
+            if (enc) {
+                usuarioActual = enc;
+                document.getElementById('login-screen').classList.add('hidden');
+                document.getElementById('app-screen').classList.remove('hidden');
+                document.getElementById('user-display').innerText = `👤 ${enc.usuario} (${enc.rol})`;
+
+                if (enc.rol === 'Administrador' || enc.rol === 'Creadora') {
+                    document.getElementById('btn-admin-usuarios').classList.remove('hidden');
+                } else {
+                    document.getElementById('btn-admin-usuarios').classList.add('hidden');
+                }
+
+                setTimeout(() => { initMap(); cargarDatos(); }, 100);
+            } else {
+                alert("Usuario o contraseña incorrectos.");
+            }
+        }
+
+        function handleLogout() {
+            document.getElementById('app-screen').classList.add('hidden');
+            document.getElementById('login-screen').classList.remove('hidden');
+        }
+
+        // MAPA CONFIGURADO CON OPENSTREETMAP PARA VISUALIZACIÓN A PROFUNDIDAD DE CALLES Y AVENIDAS
+        function initMap() {
+            if (!map) {
+                map = L.map('map').setView([10.0678, -69.3474], 9);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { 
+                    maxZoom: 19,
+                    attribution: '© OpenStreetMap contributors'
+                }).addTo(map);
+                marcadoresLayer.addTo(map);
+            }
+        }
+
+        async function cargarDatos() {
+            try {
+                const { data, error } = await supabaseClient.from('comunas').select('*');
+                if (error || !data || data.length === 0) throw error || new Error();
+                
+                comunasData = data.map(item => ({
+                    ...item,
+                    id: String(item.id || item.id_comuna || item.codigo),
+                    municipio: typeof item.municipio === 'number' ? (municipiosMap[item.municipio] || `Municipio ${item.municipio}`) : (item.municipio || "Iribarren"),
+                    parroquia: item.parroquia || "Concepción",
+                    codigo: item.codigo || "COM-CFG",
+                    rif: item.rif || "J-000000000",
+                    banco_cuenta: item.banco_cuenta || "0102-0000-00-0000000000",
+                    banco_nombre: item.banco_nombre || "Banco de Venezuela",
+                    monto_asignado: item.monto_asignado || 0,
+                    cc_ejecutor: item.cc_ejecutor || "No Especificado",
+                    estatus_proyecto: item.estatus_proyecto || item.estatus || "Borrador",
+                    ejecucion_fisica: item.ejecucion_fisica || 0,
+                    ejecucion_financiera: item.ejecucion_financiera || 0,
+                    nudo_critico: item.nudo_critico || "Sin reporte de nudos críticos.",
+                    sector: item.sector || "General",
+                    emblematico: item.emblematico || false
+                }));
+            } catch (err) {
+                comunasData = [...comunasRespaldo];
+            }
+            filtrarPorCiclo();
+        }
+
+        function cambiarCicloConsulta(val) { cicloActual = val; filtrarPorCiclo(); }
+
+        function filtrarPorCiclo() {
+            let filtrados = comunasData.filter(c => String(c.consulta || "7") === String(cicloActual));
+            actualizarPipeline(filtrados);
+            renderizarMapa(filtrados);
+        }
+
+        function actualizarPipeline(data) {
+            document.getElementById('total-proyectos-cargados').innerText = `${data.length} Proyectos`;
+            document.getElementById('cant-borrador').innerText = data.filter(c => c.estatus_proyecto === 'Borrador').length;
+            document.getElementById('cant-preeval').innerText = data.filter(c => c.estatus_proyecto === 'Pre-evaluación').length;
+            document.getElementById('cant-eval').innerText = data.filter(c => c.estatus_proyecto === 'En Evaluación').length;
+            document.getElementById('cant-ejec').innerText = data.filter(c => c.estatus_proyecto === 'En Ejecución').length;
+            document.getElementById('cant-culminado').innerText = data.filter(c => c.estatus_proyecto === 'Culminado').length;
+            document.getElementById('cant-emblematicos').innerText = data.filter(c => c.emblematico === true).length;
+        }
+
+        function renderizarMapa(data) {
+            marcadoresLayer.clearLayers();
+            data.forEach(c => {
+                if (c.lat && c.lng) {
+                    let col = '#6366f1';
+                    if (c.estatus_proyecto === 'En Ejecución') col = '#f59e0b';
+                    else if (c.estatus_proyecto === 'Culminado') col = '#10b981';
+
+                    let embTag = c.emblematico ? '⭐ ' : '';
+
+                    let icon = L.divIcon({
+                        className: 'pin',
+                        html: `<div style="background:${col}; width:${c.emblematico ? '20px' : '16px'}; height:${c.emblematico ? '20px' : '16px'}; border-radius:50%; border:2px solid ${c.emblematico ? '#fbbf24' : 'white'};"></div>`
+                    });
+
+                    let m = L.marker([c.lat, c.lng], { icon: icon });
+                    m.bindPopup(`<b>${embTag}${c.nombre}</b><br>Municipio: ${c.municipio}<br>Parroquia: ${c.parroquia}<br>Sector: <b>${c.sector || 'General'}</b><br>Estatus: ${c.estatus_proyecto}`);
+                    m.on('click', () => { mostrarFichaComuna(c); map.setView([c.lat, c.lng], 15); });
+                    marcadoresLayer.addLayer(m);
+                }
+            });
+        }
+
+        function buscarComunaOConsojo(val) {
+            let term = val.trim().toLowerCase();
+            let box = document.getElementById('resultados-busqueda');
+            
+            if (!term) {
+                box.classList.add('hidden');
+                box.innerHTML = '';
+                return;
+            }
+
+            let resultados = [];
+            let dataset = comunasData.filter(c => String(c.consulta || "7") === String(cicloActual));
+
+            dataset.forEach(c => {
+                let coincideComuna = c.nombre.toLowerCase().includes(term) || (c.codigo && c.codigo.toLowerCase().includes(term));
+                let ccs = Array.isArray(c.consejos_comunales) ? c.consejos_comunales : [];
+                let ccsCoincidentes = ccs.filter(cc => {
+                    let nom = typeof cc === 'string' ? cc : cc.nombre;
+                    return nom.toLowerCase().includes(term);
+                });
+
+                if (coincideComuna || ccsCoincidentes.length > 0) {
+                    resultados.push({ comuna: c, ccsCoincidentes: ccsCoincidentes, esComunaDirecta: coincideComuna });
+                }
+            });
+
+            if (resultados.length === 0) {
+                box.innerHTML = `<div class="p-3 text-xs text-slate-400 italic">No se encontraron resultados para "${val}".</div>`;
+            } else {
+                box.innerHTML = resultados.map(r => {
+                    let c = r.comuna;
+                    let cid = obtenerId(c);
+                    let detalleCC = r.ccsCoincidentes.length > 0 ? 
+                        `<div class="text-[10px] text-emerald-400 font-semibold mt-0.5">👥 CC Coincidente: ${r.ccsCoincidentes.map(x => typeof x === 'string' ? x : x.nombre).join(', ')}</div>` : '';
+                    
+                    return `
+                        <div onclick="seleccionarResultadoBusqueda('${cid}')" class="p-2.5 hover:bg-slate-800/80 cursor-pointer transition-all space-y-0.5">
+                            <div class="flex justify-between items-center">
+                                <span class="font-bold text-xs text-indigo-300">${c.emblematico ? '⭐ ' : ''}${c.nombre} <span class="text-[10px] text-slate-500">(${c.codigo || 'COM'})</span></span>
+                                <span class="text-[9px] bg-indigo-500/10 text-indigo-400 px-2 py-0.5 rounded border border-indigo-500/20">${c.municipio} - ${c.parroquia}</span>
+                            </div>
+                            <p class="text-[11px] text-slate-300 font-medium">📌 Proyecto: ${c.proyectos || 'Sin proyecto asignado'}</p>
+                            ${detalleCC}
+                        </div>
+                    `;
+                }).join('');
+            }
+            box.classList.remove('hidden');
+        }
+
+        function seleccionarResultadoBusqueda(id) {
+            let c = comunasData.find(x => obtenerId(x) === String(id));
+            if (c) {
+                mostrarFichaComuna(c);
+                if (c.lat && c.lng) map.setView([c.lat, c.lng], 15);
+            }
+            document.getElementById('resultados-busqueda').classList.add('hidden');
+            document.getElementById('input-busqueda-global').value = '';
+        }
+
+        function mostrarFichaComuna(c, pestana = 'comuna') {
+            pestanaActivaFicha = pestana;
+            document.getElementById('titulo-panel-lateral').innerText = "Ficha Técnica Integral";
+            const panel = document.getElementById('ficha-comuna');
+
+            let cid = obtenerId(c);
+            let ccs = Array.isArray(c.consejos_comunales) ? c.consejos_comunales : [];
+
+            let ccsHtml = ccs.map((cc, i) => {
+                let nombreCC = typeof cc === 'string' ? cc : cc.nombre;
+                let voceria = cc.voceria_estatus || "Vigente";
+                let proys = cc.proyectos && cc.proyectos.length > 0 ? cc.proyectos.join(', ') : 'Sin proyectos individuales';
+                let badgeCol = voceria === 'Vigente' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-red-500/20 text-red-400';
+                
+                return `
+                <div class="bg-slate-900 p-2.5 rounded-lg border border-slate-800 text-xs space-y-1">
+                    <div class="flex justify-between items-center">
+                        <span class="text-white font-bold">${i+1}. ${nombreCC}</span>
+                        <span class="text-[9px] ${badgeCol} px-2 py-0.5 rounded font-bold">${voceria}</span>
+                    </div>
+                    <p class="text-[10px] text-slate-400">Proyectos Afiliados: <b class="text-slate-300">${proys}</b></p>
+                </div>`;
+            }).join('');
+
+            const estatusOpciones = ["Borrador", "Pre-evaluación", "En Evaluación", "En Ejecución", "Culminado"];
+            let comboEstatusHtml = estatusOpciones.map(est => 
+                `<option value="${est}" ${c.estatus_proyecto === est ? 'selected' : ''}>${est}</option>`
+            ).join('');
+
+            let htmlTabsNav = `
+                <div class="flex border-b border-slate-800 mb-4 bg-slate-900 p-1 rounded-xl">
+                    <button onclick="mostrarFichaComuna(comunasData.find(x=>obtenerId(x)==='${cid}'), 'comuna')" class="flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${pestana === 'comuna' ? 'bg-indigo-600 text-white shadow' : 'text-slate-400 hover:text-white'}">
+                        🏛️ Comunas del Estado
+                    </button>
+                    <button onclick="mostrarFichaComuna(comunasData.find(x=>obtenerId(x)==='${cid}'), 'proyecto')" class="flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${pestana === 'proyecto' ? 'bg-indigo-600 text-white shadow' : 'text-slate-400 hover:text-white'}">
+                        📋 Proyectos Cargados
+                    </button>
+                </div>
+            `;
+
+            let cuerpoFicha = '';
+
+            // CONTROL DE ROL: ANALISTAS NO PUEDEN EDITAR CONSEJOS COMUNALES
+            let esAnalista = usuarioActual && usuarioActual.rol === 'Analista';
+            let botonEditarCC = !esAnalista ? 
+                `<button onclick="abrirModalEditarCC('${cid}')" class="text-[10px] bg-indigo-600 hover:bg-indigo-500 text-white px-2 py-0.5 rounded font-bold">✏️ Editar CCs</button>` : 
+                `<span class="text-[10px] text-slate-500 italic">Modo Lectura (Analista)</span>`;
+
+            if (pestana === 'comuna') {
+                cuerpoFicha = `
+                    <div class="space-y-3 text-xs">
+                        <div class="bg-slate-900 p-3.5 rounded-xl border border-slate-800 space-y-2">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <h3 class="text-sm font-bold text-white">${c.nombre}</h3>
+                                    <span class="text-[10px] text-indigo-400">Código: <b>${c.codigo || 'S/C'}</b></span>
+                                </div>
+                                <span class="bg-indigo-500/10 border border-indigo-500/30 text-indigo-300 px-2.5 py-1 rounded-lg text-[10px] font-bold">${c.municipio}</span>
+                            </div>
+                            <div class="text-slate-400">Parroquia: <b class="text-slate-200">${c.parroquia}</b></div>
+                        </div>
+
+                        <div class="bg-slate-900 p-3.5 rounded-xl border border-slate-800 space-y-2">
+                            <span class="font-bold text-amber-400 block text-[11px] uppercase">🏦 Datos Bancarios y Fiscales</span>
+                            <div class="space-y-1 text-slate-300">
+                                <div class="flex justify-between"><span>RIF Comunal:</span><b class="text-white">${c.rif || 'J-000000000'}</b></div>
+                                <div class="flex justify-between"><span>Banco:</span><b class="text-white">${c.banco_nombre || 'Banco de Venezuela'}</b></div>
+                                <div class="flex justify-between"><span>Cuenta Bancaria:</span><b class="text-indigo-300 font-mono">${c.banco_cuenta || 'N/D'}</b></div>
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-900 p-3.5 rounded-xl border border-slate-800 space-y-2">
+                            <div class="flex justify-between items-center">
+                                <span class="font-bold text-emerald-400 text-[11px] uppercase">👥 Consejos Comunales (${ccs.length})</span>
+                                ${botonEditarCC}
+                            </div>
+                            <div class="space-y-2 max-h-48 overflow-y-auto pr-1">${ccsHtml || '<p class="text-slate-500 italic">No hay consejos comunales cargados.</p>'}</div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                cuerpoFicha = `
+                    <div class="space-y-3 text-xs">
+                        <div class="bg-slate-900 p-3.5 rounded-xl border border-slate-800 space-y-2">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <span class="text-[10px] text-amber-400 uppercase font-bold">Consulta Popular N° ${c.consulta || cicloActual}</span>
+                                    <h3 class="text-sm font-bold text-white mt-0.5">${c.proyectos || 'Sin Nombre de Proyecto'}</h3>
+                                </div>
+                                <button onclick="toggleEmblematico('${cid}')" class="px-2.5 py-1 rounded-lg text-[10px] font-bold ${c.emblematico ? 'bg-amber-500 text-slate-950' : 'bg-slate-800 text-amber-300 border border-amber-500/30'}">
+                                    ${c.emblematico ? '⭐ Emblemático' : '☆ Marcar Emblemático'}
+                                </button>
+                            </div>
+                            <div class="pt-2 border-t border-slate-800 flex justify-between items-center text-slate-300">
+                                <span>Monto Asignado:</span>
+                                <b class="text-emerald-400 text-sm font-mono">$${(c.monto_asignado || 0).toLocaleString()}</b>
+                            </div>
+                            <div class="flex justify-between items-center text-slate-300">
+                                <span>CC Ejecutor:</span>
+                                <b class="text-indigo-300">${c.cc_ejecutor || 'Consejo Comunal Principal'}</b>
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-900 p-3.5 rounded-xl border border-indigo-500/30 space-y-2">
+                            <label class="block font-bold text-indigo-300 text-[11px] uppercase">⚡ Cambiar Estatus del Proyecto</label>
+                            <div class="flex gap-2">
+                                <select id="select-cambio-estatus" class="flex-1 bg-slate-950 border border-slate-800 rounded px-2.5 py-1.5 text-xs text-white outline-none focus:border-indigo-500">
+                                    ${comboEstatusHtml}
+                                </select>
+                                <button onclick="guardarEstatusProyecto('${cid}')" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-3 py-1.5 rounded-lg text-xs">Guardar Estatus</button>
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-900 p-3.5 rounded-xl border border-slate-800 space-y-2">
+                            <span class="font-bold text-blue-400 block text-[11px] uppercase">📊 Ejecución Física y Financiera</span>
+                            <div class="space-y-2">
+                                <div>
+                                    <div class="flex justify-between text-[10px] mb-1"><span class="text-slate-400">Ejecución Física:</span><b class="text-emerald-400">${c.ejecucion_fisica}%</b></div>
+                                    <div class="w-full bg-slate-950 h-2 rounded-full overflow-hidden"><div class="bg-emerald-500 h-full" style="width: ${c.ejecucion_fisica}%"></div></div>
+                                </div>
+                                <div>
+                                    <div class="flex justify-between text-[10px] mb-1"><span class="text-slate-400">Ejecución Financiera:</span><b class="text-blue-400">${c.ejecucion_financiera}%</b></div>
+                                    <div class="w-full bg-slate-950 h-2 rounded-full overflow-hidden"><div class="bg-blue-500 h-full" style="width: ${c.ejecucion_financiera}%"></div></div>
+                                </div>
+                            </div>
+
+                            <div class="pt-2 border-t border-slate-800 grid grid-cols-2 gap-2 mt-2">
+                                <div><label class="text-[9px] text-slate-400">Actualizar % Físico</label><input type="number" id="input-ejec-fisica" min="0" max="100" value="${c.ejecucion_fisica}" class="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1 text-white"></div>
+                                <div><label class="text-[9px] text-slate-400">Actualizar % Financiero</label><input type="number" id="input-ejec-financiera" min="0" max="100" value="${c.ejecucion_financiera}" class="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1 text-white"></div>
+                            </div>
+                            <button onclick="guardarEjecucionManual('${cid}')" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-1.5 rounded text-xs mt-1">💾 Actualizar Avance</button>
+                        </div>
+
+                        <div class="bg-slate-900 p-3.5 rounded-xl border border-slate-800 space-y-1.5">
+                            <div class="flex justify-between items-center">
+                                <span class="text-[10px] text-red-400 font-bold uppercase">⚠️ Nudo Crítico / Obstáculo</span>
+                                <button onclick="abrirFormularioNudoCritico('${cid}')" class="text-[10px] bg-red-600/20 text-red-300 border border-red-500/30 px-2 py-0.5 rounded font-bold">✏️ Editar Nudo</button>
+                            </div>
+                            <p class="text-[11px] text-slate-300 italic bg-slate-950 p-2.5 rounded border border-slate-800/80">${c.nudo_critico || 'Sin reporte de nudos críticos.'}</p>
+                        </div>
+                    </div>
+                `;
+            }
+
+            document.getElementById('contenido-ficha').innerHTML = htmlTabsNav + cuerpoFicha;
+            panel.classList.remove('translate-x-full');
+        }
+
+        async function guardarEstatusProyecto(idComuna) {
+            let c = comunasData.find(item => obtenerId(item) === String(idComuna));
+            if (!c) return;
+
+            let nuevoEstatus = document.getElementById('select-cambio-estatus').value;
+            c.estatus_proyecto = nuevoEstatus;
+            
+            await guardarEnSupabase(idComuna, { estatus_proyecto: nuevoEstatus, estatus: nuevoEstatus });
+
+            filtrarPorCiclo();
+            mostrarFichaComuna(c, 'proyecto');
+            alert(`Estatus del proyecto cambiado exitosamente a: "${nuevoEstatus}".`);
+        }
+
+        async function toggleEmblematico(idComuna) {
+            let c = comunasData.find(item => obtenerId(item) === String(idComuna));
+            if (!c) return;
+
+            c.emblematico = !c.emblematico;
+
+            await guardarEnSupabase(idComuna, { emblematico: c.emblematico });
+
+            filtrarPorCiclo();
+            mostrarFichaComuna(c, pestanaActivaFicha);
+            alert(`Proyecto ${c.emblematico ? 'marcado como EMBLEMÁTICO ⭐' : 'desmarcado de emblemáticos'}.`);
+        }
+
+        async function guardarEjecucionManual(idComuna) {
+            let c = comunasData.find(item => obtenerId(item) === String(idComuna));
+            if (!c) return;
+
+            let fis = parseInt(document.getElementById('input-ejec-fisica').value) || 0;
+            let fin = parseInt(document.getElementById('input-ejec-financiera').value) || 0;
+
+            c.ejecucion_fisica = Math.min(100, Math.max(0, fis));
+            c.ejecucion_financiera = Math.min(100, Math.max(0, fin));
+
+            await guardarEnSupabase(idComuna, { 
+                ejecucion_fisica: c.ejecucion_fisica, 
+                ejecucion_financiera: c.ejecucion_financiera 
+            });
+
+            filtrarPorCiclo();
+            mostrarFichaComuna(c, 'proyecto');
+            alert(`Ejecución física (${c.ejecucion_fisica}%) y financiera (${c.ejecucion_financiera}%) actualizada.`);
+        }
+
+        function abrirFormularioNudoCritico(idComuna) {
+            let c = comunasData.find(item => obtenerId(item) === String(idComuna));
+            if (!c) return;
+
+            document.getElementById('titulo-panel-lateral').innerText = "Registrar Nudo Crítico";
+            document.getElementById('contenido-ficha').innerHTML = `
+                <form onsubmit="guardarNudoCritico(event, '${idComuna}')" class="space-y-3 text-xs">
+                    <p class="text-slate-300 font-medium">Comuna: <span class="text-indigo-400 font-bold">${c.nombre}</span></p>
+                    <div>
+                        <label class="block text-[10px] text-slate-400 uppercase mb-1">Descripción del Nudo Crítico / Obstáculo</label>
+                        <textarea id="textarea-nudo-critico" rows="5" required placeholder="Escriba aquí los nudos críticos, falta de insumos, fallas técnicas u observaciones..." class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-xs text-white outline-none focus:border-red-500">${c.nudo_critico || ''}</textarea>
+                    </div>
+                    <div class="flex gap-2">
+                        <button type="submit" class="flex-1 bg-red-600 hover:bg-red-500 text-white font-bold py-2 rounded-lg transition-all">💾 Guardar Nudo Crítico</button>
+                        <button type="button" onclick="mostrarFichaComuna(comunasData.find(x=>obtenerId(x)==='${idComuna}'), 'proyecto')" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-2 rounded-lg">Cancelar</button>
+                    </div>
+                </form>
             `;
         }
 
-        document.getElementById('contenido-ficha').innerHTML = htmlTabsNav + cuerpoFicha;
-        panel.classList.remove('translate-x-full');
-    }
+        async function guardarNudoCritico(e, idComuna) {
+            e.preventDefault();
+            let c = comunasData.find(item => obtenerId(item) === String(idComuna));
+            if (!c) return;
 
-    /* ========================================================
-       FUNCIONES DE EVENTOS INTEGRADAS CON ASYNC/AWAIT
-    ======================================================== */
-    async function guardarEstatusProyecto(idComuna) {
-        let c = comunasData.find(item => obtenerId(item) === String(idComuna));
-        if (!c) return;
+            let texto = document.getElementById('textarea-nudo-critico').value.trim();
+            c.nudo_critico = texto || "Sin reporte de nudos críticos.";
 
-        let nuevoEstatus = document.getElementById('select-cambio-estatus').value;
-        c.estatus_proyecto = nuevoEstatus;
+            await guardarEnSupabase(idComuna, { nudo_critico: c.nudo_critico });
 
-        await actualizarComunaEnSupabase(c);
-        filtrarPorCiclo();
-        mostrarFichaComuna(c, 'proyecto');
-        alert(`Estatus del proyecto cambiado y guardado en la base de datos: "${nuevoEstatus}".`);
-    }
-
-    async function toggleEmblematico(idComuna) {
-        let c = comunasData.find(item => obtenerId(item) === String(idComuna));
-        if (!c) return;
-
-        c.emblematico = !c.emblematico;
-
-        await actualizarComunaEnSupabase(c);
-        filtrarPorCiclo();
-        mostrarFichaComuna(c, pestanaActivaFicha);
-        alert(`Proyecto ${c.emblematico ? 'marcado como EMBLEMÁTICO ⭐' : 'desmarcado de emblemáticos'} en la base de datos.`);
-    }
-
-    async function guardarEjecucionManual(idComuna) {
-        let c = comunasData.find(item => obtenerId(item) === String(idComuna));
-        if (!c) return;
-
-        let fis = parseInt(document.getElementById('input-ejec-fisica').value) || 0;
-        let fin = parseInt(document.getElementById('input-ejec-financiera').value) || 0;
-
-        c.ejecucion_fisica = Math.min(100, Math.max(0, fis));
-        c.ejecucion_financiera = Math.min(100, Math.max(0, fin));
-
-        await actualizarComunaEnSupabase(c);
-        filtrarPorCiclo();
-        mostrarFichaComuna(c, 'proyecto');
-        alert(`Ejecución física (${c.ejecucion_fisica}%) y financiera (${c.ejecucion_financiera}%) guardada con éxito.`);
-    }
-
-    function abrirFormularioNudoCritico(idComuna) {
-        let c = comunasData.find(item => obtenerId(item) === String(idComuna));
-        if (!c) return;
-
-        document.getElementById('titulo-panel-lateral').innerText = "Registrar Nudo Crítico";
-        document.getElementById('contenido-ficha').innerHTML = `
-            <form onsubmit="guardarNudoCritico(event, '${idComuna}')" class="space-y-3 text-xs">
-                <p class="text-slate-300 font-medium">Comuna: <span class="text-indigo-400 font-bold">${c.nombre}</span></p>
-                <div>
-                    <label class="block text-[10px] text-slate-400 uppercase mb-1">Descripción del Nudo Crítico / Obstáculo</label>
-                    <textarea id="textarea-nudo-critico" rows="5" required placeholder="Escriba aquí los nudos críticos, falta de insumos, fallas técnicas u observaciones..." class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-xs text-white outline-none focus:border-red-500">${c.nudo_critico || ''}</textarea>
-                </div>
-                <div class="flex gap-2">
-                    <button type="submit" class="flex-1 bg-red-600 hover:bg-red-500 text-white font-bold py-2 rounded-lg transition-all">💾 Guardar Nudo Crítico</button>
-                    <button type="button" onclick="mostrarFichaComuna(comunasData.find(x=>obtenerId(x)==='${idComuna}'), 'proyecto')" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-2 rounded-lg">Cancelar</button>
-                </div>
-            </form>
-        `;
-    }
-
-    async function guardarNudoCritico(e, idComuna) {
-        e.preventDefault();
-        let c = comunasData.find(item => obtenerId(item) === String(idComuna));
-        if (!c) return;
-
-        let texto = document.getElementById('textarea-nudo-critico').value.trim();
-        c.nudo_critico = texto || "Sin reporte de nudos críticos.";
-
-        await actualizarComunaEnSupabase(c);
-        filtrarPorCiclo();
-        mostrarFichaComuna(c, 'proyecto');
-        alert("Nudo crítico guardado y actualizado en la base de datos.");
-    }
-
-    function abrirModalEditarCC(idComuna) {
-        if (usuarioActual && usuarioActual.rol === 'Analista') {
-            alert("🔒 Acceso Restringido: Los usuarios con rol de Analista no tienen permisos para modificar o editar los consejos comunales.");
-            return;
+            filtrarPorCiclo();
+            mostrarFichaComuna(c, 'proyecto');
+            alert("Nudo crítico guardado y actualizado con éxito.");
         }
 
-        let c = comunasData.find(item => obtenerId(item) === String(idComuna));
-        if (!c) return;
+        // VALIDACIÓN RIGUROSA PARA IMPEDIR EDICIÓN DE CC POR ROL DE ANALISTA
+        function abrirModalEditarCC(idComuna) {
+            if (usuarioActual && usuarioActual.rol === 'Analista') {
+                alert("🔒 Acceso Restringido: Los usuarios con rol de Analista no tienen permisos para modificar o editar los consejos comunales.");
+                return;
+            }
 
-        let ccs = Array.isArray(c.consejos_comunales) ? c.consejos_comunales : [];
-        let inputsHtml = [0,1,2,3,4,5,6,7,8].map(i => {
-            let cc = ccs[i] || { nombre: '', voceria_estatus: 'Vigente' };
-            let nombre = typeof cc === 'string' ? cc : cc.nombre;
-            let estatus = cc.voceria_estatus || 'Vigente';
+            let c = comunasData.find(item => obtenerId(item) === String(idComuna));
+            if (!c) return;
 
-            return `<div class="grid grid-cols-3 gap-2 items-center">
-                <input type="text" id="cc-nombre-${i}" value="${nombre || ''}" placeholder="CC ${i+1}" class="col-span-2 bg-slate-950 border border-slate-800 rounded px-2 py-1 text-xs text-white">
-                <select id="cc-voceria-${i}" class="bg-slate-950 border border-slate-800 rounded px-1 py-1 text-[10px] text-slate-200">
-                    <option value="Vigente" ${estatus === 'Vigente' ? 'selected' : ''}>Vigente</option>
-                    <option value="Vencida" ${estatus === 'Vencida' ? 'selected' : ''}>Vencida</option>
-                    <option value="Reestructuración" ${estatus === 'Reestructuración' ? 'selected' : ''}>Reestruct.</option>
-                </select>
-            </div>`;
-        }).join('');
+            let ccs = Array.isArray(c.consejos_comunales) ? c.consejos_comunales : [];
+            let inputsHtml = [0,1,2,3,4,5,6,7,8].map(i => {
+                let cc = ccs[i] || { nombre: '', voceria_estatus: 'Vigente' };
+                let nombre = typeof cc === 'string' ? cc : cc.nombre;
+                let estatus = cc.voceria_estatus || 'Vigente';
 
-        document.getElementById('titulo-panel-lateral').innerText = "Editar CCs y Vocerías";
-        document.getElementById('contenido-ficha').innerHTML = `
-            <form onsubmit="guardarCCs(event, '${idComuna}')" class="space-y-3 text-xs">
-                <p class="text-slate-400">Edita los Consejos Comunales integrantes y el estado de sus vocerías:</p>
-                <div class="space-y-2 max-h-80 overflow-y-auto pr-1">${inputsHtml}</div>
-                <div class="flex gap-2">
-                    <button type="submit" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 rounded-lg">💾 Guardar Cambios</button>
-                    <button type="button" onclick="mostrarFichaComuna(comunasData.find(x=>obtenerId(x)==='${idComuna}'), 'comuna')" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-2 rounded-lg">Cancelar</button>
-                </div>
-            </form>
-        `;
-    }
+                return `<div class="grid grid-cols-3 gap-2 items-center">
+                    <input type="text" id="cc-nombre-${i}" value="${nombre || ''}" placeholder="CC ${i+1}" class="col-span-2 bg-slate-950 border border-slate-800 rounded px-2 py-1 text-xs text-white">
+                    <select id="cc-voceria-${i}" class="bg-slate-950 border border-slate-800 rounded px-1 py-1 text-[10px] text-slate-200">
+                        <option value="Vigente" ${estatus === 'Vigente' ? 'selected' : ''}>Vigente</option>
+                        <option value="Vencida" ${estatus === 'Vencida' ? 'selected' : ''}>Vencida</option>
+                        <option value="Reestructuración" ${estatus === 'Reestructuración' ? 'selected' : ''}>Reestruct.</option>
+                    </select>
+                </div>`;
+            }).join('');
 
-    async function guardarCCs(e, idComuna) {
-        e.preventDefault();
-        if (usuarioActual && usuarioActual.rol === 'Analista') {
-            alert("🔒 No tienes permisos para realizar esta acción.");
-            return;
+            document.getElementById('titulo-panel-lateral').innerText = "Editar CCs y Vocerías";
+            document.getElementById('contenido-ficha').innerHTML = `
+                <form onsubmit="guardarCCs(event, '${idComuna}')" class="space-y-3 text-xs">
+                    <p class="text-slate-400">Edita los Consejos Comunales integrantes y el estado de sus vocerías:</p>
+                    <div class="space-y-2 max-h-80 overflow-y-auto pr-1">${inputsHtml}</div>
+                    <div class="flex gap-2">
+                        <button type="submit" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 rounded-lg">💾 Guardar Cambios</button>
+                        <button type="button" onclick="mostrarFichaComuna(comunasData.find(x=>obtenerId(x)==='${idComuna}'), 'comuna')" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-2 rounded-lg">Cancelar</button>
+                    </div>
+                </form>
+            `;
         }
 
-        let c = comunasData.find(item => obtenerId(item) === String(idComuna));
-        if (!c) return;
+        async function guardarCCs(e, idComuna) {
+            e.preventDefault();
+            if (usuarioActual && usuarioActual.rol === 'Analista') {
+                alert("🔒 No tienes permisos para realizar esta acción.");
+                return;
+            }
 
-        let nuevosCCs = [];
-        for (let i = 0; i < 9; i++) {
-            let nom = document.getElementById(`cc-nombre-${i}`).value.trim();
-            let voc = document.getElementById(`cc-voceria-${i}`).value;
-            if (nom) nuevosCCs.push({ nombre: nom, voceria_estatus: voc, proyectos: [] });
+            let c = comunasData.find(item => obtenerId(item) === String(idComuna));
+            if (!c) return;
+
+            let nuevosCCs = [];
+            for (let i = 0; i < 9; i++) {
+                let nom = document.getElementById(`cc-nombre-${i}`).value.trim();
+                let voc = document.getElementById(`cc-voceria-${i}`).value;
+                if (nom) nuevosCCs.push({ nombre: nom, voceria_estatus: voc, proyectos: [] });
+            }
+
+            c.consejos_comunales = nuevosCCs;
+
+            await guardarEnSupabase(idComuna, { consejos_comunales: nuevosCCs });
+
+            filtrarPorCiclo();
+            mostrarFichaComuna(c, 'comuna');
+            alert("¡Consejos comunales actualizados con éxito!");
         }
 
-        c.consejos_comunales = nuevosCCs;
+        // FICHA ESTADÍSTICA CON DESPLIEGUE MULTINIVEL: MUNICIPIO -> PARROQUIA -> PROYECTOS
+        function abrirFichaEstadistica() {
+            document.getElementById('titulo-panel-lateral').innerText = "Ficha Estadística y Exportación";
+            const panel = document.getElementById('ficha-comuna');
 
-        await actualizarComunaEnSupabase(c);
-        filtrarPorCiclo();
-        mostrarFichaComuna(c, 'comuna');
-        alert("¡Consejos comunales actualizados e integrados en Supabase!");
-    }
+            let dataset = comunasData.filter(c => String(c.consulta || "7") === String(cicloActual));
+            let total = dataset.length;
 
-    function abrirFichaEstadistica() {
-        document.getElementById('titulo-panel-lateral').innerText = "Ficha Estadística y Exportación";
-        const panel = document.getElementById('ficha-comuna');
+            let listaMunicipiosHtml = Object.keys(municipiosCoordenadas).map(m => {
+                let proysMunicipio = dataset.filter(c => c.municipio === m);
+                let listaParroquiasOficiales = parroquiasPorMunicipio[m] || ["General"];
 
-        let dataset = comunasData.filter(c => String(c.consulta || "7") === String(cicloActual));
-        let total = dataset.length;
+                let parroquiasHtml = listaParroquiasOficiales.map(p => {
+                    let proysParroquia = proysMunicipio.filter(item => item.parroquia === p);
+                    
+                    let proysListHtml = proysParroquia.map(proy => {
+                        let pid = obtenerId(proy);
+                        return `
+                        <div onclick="seleccionarResultadoBusqueda('${pid}')" class="bg-slate-950 p-2 rounded border border-slate-800 hover:border-indigo-500 cursor-pointer text-xs space-y-0.5">
+                            <div class="flex justify-between font-bold text-white">
+                                <span>${proy.nombre}</span>
+                                <span class="text-[10px] text-amber-400">${proy.estatus_proyecto}</span>
+                            </div>
+                            <p class="text-[11px] text-slate-300">📌 ${proy.proyectos}</p>
+                        </div>`;
+                    }).join('');
 
-        let listaMunicipiosHtml = Object.keys(municipiosCoordenadas).map(m => {
-            let proysMunicipio = dataset.filter(c => c.municipio === m);
-            let listaParroquiasOficiales = parroquiasPorMunicipio[m] || ["General"];
-
-            let parroquiasHtml = listaParroquiasOficiales.map(p => {
-                let proysParroquia = proysMunicipio.filter(item => item.parroquia === p);
-                
-                let proysListHtml = proysParroquia.map(proy => {
-                    let pid = obtenerId(proy);
                     return `
-                    <div onclick="seleccionarResultadoBusqueda('${pid}')" class="bg-slate-950 p-2 rounded border border-slate-800 hover:border-indigo-500 cursor-pointer text-xs space-y-0.5">
-                        <div class="flex justify-between font-bold text-white">
-                            <span>${proy.nombre}</span>
-                            <span class="text-[10px] text-amber-400">${proy.estatus_proyecto}</span>
+                    <div class="bg-slate-900 border border-slate-800/80 rounded-lg overflow-hidden ml-2">
+                        <button onclick="toggleDesgloseElemento('desglose-parr-${m}-${p.replace(/\s+/g, '')}')" class="w-full p-2 flex justify-between items-center hover:bg-slate-800/60 transition-all text-[11px] font-semibold text-slate-300">
+                            <span>🏛️ Parroquia: ${p}</span>
+                            <span class="bg-indigo-500/20 text-indigo-300 px-2 py-0.5 rounded text-[9px] font-bold">${proysParroquia.length} Proyectos</span>
+                        </button>
+                        <div id="desglose-parr-${m}-${p.replace(/\s+/g, '')}" class="hidden p-2 bg-slate-950/60 border-t border-slate-800 space-y-1.5">
+                            ${proysListHtml || '<p class="text-slate-500 text-[10px] italic">No existen proyectos en esta parroquia.</p>'}
                         </div>
-                        <p class="text-[11px] text-slate-300">📌 ${proy.proyectos}</p>
                     </div>`;
                 }).join('');
 
                 return `
-                <div class="bg-slate-900 border border-slate-800/80 rounded-lg overflow-hidden ml-2">
-                    <button onclick="toggleDesgloseElemento('desglose-parr-${m}-${p.replace(/\s+/g, '')}')" class="w-full p-2 flex justify-between items-center hover:bg-slate-800/60 transition-all text-[11px] font-semibold text-slate-300">
-                        <span>🏛️ Parroquia: ${p}</span>
-                        <span class="bg-indigo-500/20 text-indigo-300 px-2 py-0.5 rounded text-[9px] font-bold">${proysParroquia.length} Proyectos</span>
+                <div class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
+                    <button onclick="toggleDesgloseElemento('desglose-mun-${m.replace(/\s+/g, '')}')" class="w-full p-3 flex justify-between items-center hover:bg-slate-800/80 transition-all text-xs font-bold text-slate-200">
+                        <span class="flex items-center gap-2">📍 Municipio ${m}</span>
+                        <span class="bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 px-2.5 py-0.5 rounded-lg text-[10px]">${proysMunicipio.length} Proyectos</span>
                     </button>
-                    <div id="desglose-parr-${m}-${p.replace(/\s+/g, '')}" class="hidden p-2 bg-slate-950/60 border-t border-slate-800 space-y-1.5">
-                        ${proysListHtml || '<p class="text-slate-500 text-[10px] italic">No existen proyectos en esta parroquia.</p>'}
+                    <div id="desglose-mun-${m.replace(/\s+/g, '')}" class="hidden p-2.5 bg-slate-950/50 border-t border-slate-800 space-y-2">
+                        <p class="text-[10px] text-slate-400 font-medium uppercase px-1">Seleccione una parroquia:</p>
+                        ${parroquiasHtml}
                     </div>
                 </div>`;
             }).join('');
 
-            return `
-            <div class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
-                <button onclick="toggleDesgloseElemento('desglose-mun-${m.replace(/\s+/g, '')}')" class="w-full p-3 flex justify-between items-center hover:bg-slate-800/80 transition-all text-xs font-bold text-slate-200">
-                    <span class="flex items-center gap-2">📍 Municipio ${m}</span>
-                    <span class="bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 px-2.5 py-0.5 rounded-lg text-[10px]">${proysMunicipio.length} Proyectos</span>
-                </button>
-                <div id="desglose-mun-${m.replace(/\s+/g, '')}" class="hidden p-2.5 bg-slate-950/50 border-t border-slate-800 space-y-2">
-                    <p class="text-[10px] text-slate-400 font-medium uppercase px-1">Seleccione una parroquia:</p>
-                    ${parroquiasHtml}
-                </div>
-            </div>`;
-        }).join('');
-
-        document.getElementById('contenido-ficha').innerHTML = `
-            <div class="space-y-4 text-xs">
-                <div class="bg-indigo-950/40 border border-indigo-500/30 p-3.5 rounded-xl flex justify-between items-center">
-                    <div>
-                        <span class="text-[10px] text-indigo-400 uppercase font-bold">Total Proyectos Estado Lara</span>
-                        <h2 class="text-xl font-bold text-white">${total} Proyectos</h2>
+            document.getElementById('contenido-ficha').innerHTML = `
+                <div class="space-y-4 text-xs">
+                    <div class="bg-indigo-950/40 border border-indigo-500/30 p-3.5 rounded-xl flex justify-between items-center">
+                        <div>
+                            <span class="text-[10px] text-indigo-400 uppercase font-bold">Total Proyectos Estado Lara</span>
+                            <h2 class="text-xl font-bold text-white">${total} Proyectos</h2>
+                        </div>
+                        <button onclick="exportarInformacionExcel()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3 py-2 rounded-xl text-xs flex items-center gap-1 shadow transition-all">
+                            📥 Exportar CSV
+                        </button>
                     </div>
-                    <button onclick="exportarInformacionExcel()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3 py-2 rounded-xl text-xs flex items-center gap-1 shadow transition-all">
-                        📥 Exportar CSV
-                    </button>
+
+                    <div class="space-y-2">
+                        <span class="font-bold text-slate-300 block">Seleccione un Municipio para desplegar sus Parroquias y Proyectos:</span>
+                        ${listaMunicipiosHtml}
+                    </div>
                 </div>
-
-                <div class="space-y-2">
-                    <span class="font-bold text-slate-300 block">Seleccione un Municipio para desplegar sus Parroquias y Proyectos:</span>
-                    ${listaMunicipiosHtml}
-                </div>
-            </div>
-        `;
-        panel.classList.remove('translate-x-full');
-    }
-
-    function toggleDesgloseElemento(idElemento) {
-        let el = document.getElementById(idElemento);
-        if (el) el.classList.toggle('hidden');
-    }
-
-    function exportarInformacionExcel() {
-        let dataset = comunasData.filter(c => String(c.consulta || "7") === String(cicloActual));
-        
-        let headers = ["ID", "Codigo Comuna", "Comuna", "Municipio", "Parroquia", "Proyecto", "Estatus", "Sector", "Ejec. Fisica (%)", "Ejec. Financiera (%)", "Monto Asignado", "RIF", "Banco", "Cuenta"];
-        let rows = dataset.map(c => [
-            `"${c.id || ''}"`,
-            `"${c.codigo || ''}"`,
-            `"${c.nombre || ''}"`,
-            `"${c.municipio || ''}"`,
-            `"${c.parroquia || ''}"`,
-            `"${(c.proyectos || '').replace(/"/g, '""')}"`,
-            `"${c.estatus_proyecto || ''}"`,
-            `"${c.sector || ''}"`,
-            `"${c.ejecucion_fisica || 0}"`,
-            `"${c.ejecucion_financiera || 0}"`,
-            `"${c.monto_asignado || 0}"`,
-            `"${c.rif || ''}"`,
-            `"${c.banco_nombre || ''}"`,
-            `"${c.banco_cuenta || ''}"`
-        ]);
-
-        let csvContent = "data:text/csv;charset=utf-8,\uFEFF" 
-            + headers.join(",") + "\n"
-            + rows.map(e => e.join(",")).join("\n");
-
-        let encodedUri = encodeURI(csvContent);
-        let link = document.createElement("a");
-        link.setAttribute("href", encodedUri);
-        link.setAttribute("download", `Reporte_CFG_Lara_Consulta_${cicloActual}.csv`);
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    }
-
-    function abrirGeneradorReportesIA() {
-        document.getElementById('titulo-panel-lateral').innerText = "Asistente e Inteligencia Artificial";
-        const panel = document.getElementById('ficha-comuna');
-
-        document.getElementById('contenido-ficha').innerHTML = `
-            <div class="space-y-3 text-xs flex flex-col h-[calc(100vh-120px)]">
-                <div class="grid grid-cols-2 gap-2">
-                    <button onclick="generarReporteGenericoIA('nudos')" class="bg-red-600/20 border border-red-500/30 text-red-300 font-bold p-2 rounded-xl text-left hover:bg-red-600/30">
-                        🚨 Nudos Críticos
-                    </button>
-                    <button onclick="generarReporteGenericoIA('ejecucion')" class="bg-amber-600/20 border border-amber-500/30 text-amber-300 font-bold p-2 rounded-xl text-left hover:bg-amber-600/30">
-                        ⚡ Avance de Obras
-                    </button>
-                </div>
-
-                <div id="chat-ia-respuestas" class="flex-1 bg-slate-900 border border-slate-800 rounded-xl p-3 overflow-y-auto space-y-2 font-mono text-[11px] text-slate-200">
-                    <div class="text-indigo-400 font-sans">🤖 ¡Hola! Soy el asistente táctico del CFG Lara. Puedes hacerme cualquier pregunta sobre los proyectos, comunas o solicitar un informe.</div>
-                </div>
-
-                <form onsubmit="preguntarIA(event)" class="flex space-x-2 pt-1">
-                    <input type="text" id="input-pregunta-ia" placeholder="Escribe tu consulta libre aquí..." class="flex-1 bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-indigo-500">
-                    <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-3 py-2 rounded-xl">Enviar</button>
-                </form>
-            </div>
-        `;
-        panel.classList.remove('translate-x-full');
-    }
-
-    function preguntarIA(e) {
-        e.preventDefault();
-        let inp = document.getElementById('input-pregunta-ia');
-        let q = inp.value.trim();
-        if (!q) return;
-
-        let box = document.getElementById('chat-ia-respuestas');
-        box.innerHTML += `<div class="text-right text-indigo-300 font-sans my-1">👤 ${q}</div>`;
-        inp.value = '';
-
-        let dataset = comunasData.filter(c => String(c.consulta || "7") === String(cicloActual));
-        let resp = "";
-
-        let qLower = q.toLowerCase();
-        if (qLower.includes("cuantos") || qLower.includes("cuántos")) {
-            resp = `Actualmente hay un total de ${dataset.length} proyectos registrados en la ${cicloActual}ma Consulta Popular.`;
-        } else if (qLower.includes("iribarren")) {
-            let count = dataset.filter(c => c.municipio === 'Iribarren').length;
-            resp = `El municipio Iribarren cuenta con ${count} proyectos en este ciclo.`;
-        } else {
-            resp = `Analizando datos de Lara: Se registran ${dataset.length} proyectos. ${dataset.filter(d=>d.nudo_critico && !d.nudo_critico.includes("Sin reporte")).length} tienen nudos críticos activos requeridos para atención interinstitucional.`;
+            `;
+            panel.classList.remove('translate-x-full');
         }
 
-        setTimeout(() => {
-            box.innerHTML += `<div class="bg-slate-950 p-2 rounded border border-slate-800 text-slate-200">${resp}</div>`;
+        function toggleDesgloseElemento(idElemento) {
+            let el = document.getElementById(idElemento);
+            if (el) el.classList.toggle('hidden');
+        }
+
+        function exportarInformacionExcel() {
+            let dataset = comunasData.filter(c => String(c.consulta || "7") === String(cicloActual));
+            
+            let headers = ["ID", "Codigo Comuna", "Comuna", "Municipio", "Parroquia", "Proyecto", "Estatus", "Sector", "Ejec. Fisica (%)", "Ejec. Financiera (%)", "Monto Asignado", "RIF", "Banco", "Cuenta"];
+            let rows = dataset.map(c => [
+                `"${c.id || ''}"`,
+                `"${c.codigo || ''}"`,
+                `"${c.nombre || ''}"`,
+                `"${c.municipio || ''}"`,
+                `"${c.parroquia || ''}"`,
+                `"${(c.proyectos || '').replace(/"/g, '""')}"`,
+                `"${c.estatus_proyecto || ''}"`,
+                `"${c.sector || ''}"`,
+                `"${c.ejecucion_fisica || 0}"`,
+                `"${c.ejecucion_financiera || 0}"`,
+                `"${c.monto_asignado || 0}"`,
+                `"${c.rif || ''}"`,
+                `"${c.banco_nombre || ''}"`,
+                `"${c.banco_cuenta || ''}"`
+            ]);
+
+            let csvContent = "data:text/csv;charset=utf-8,\uFEFF" 
+                + headers.join(",") + "\n"
+                + rows.map(e => e.join(",")).join("\n");
+
+            let encodedUri = encodeURI(csvContent);
+            let link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `Reporte_CFG_Lara_Consulta_${cicloActual}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function abrirGeneradorReportesIA() {
+            document.getElementById('titulo-panel-lateral').innerText = "Asistente e Inteligencia Artificial";
+            const panel = document.getElementById('ficha-comuna');
+
+            document.getElementById('contenido-ficha').innerHTML = `
+                <div class="space-y-3 text-xs flex flex-col h-[calc(100vh-120px)]">
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="generarReporteGenericoIA('nudos')" class="bg-red-600/20 border border-red-500/30 text-red-300 font-bold p-2 rounded-xl text-left hover:bg-red-600/30">
+                            🚨 Nudos Críticos
+                        </button>
+                        <button onclick="generarReporteGenericoIA('ejecucion')" class="bg-amber-600/20 border border-amber-500/30 text-amber-300 font-bold p-2 rounded-xl text-left hover:bg-amber-600/30">
+                            ⚡ Avance de Obras
+                        </button>
+                    </div>
+
+                    <div id="chat-ia-respuestas" class="flex-1 bg-slate-900 border border-slate-800 rounded-xl p-3 overflow-y-auto space-y-2 font-mono text-[11px] text-slate-200">
+                        <div class="text-indigo-400 font-sans">🤖 ¡Hola! Soy el asistente táctico del CFG Lara. Puedes hacerme cualquier pregunta sobre los proyectos, comunas o solicitar un informe.</div>
+                    </div>
+
+                    <form onsubmit="preguntarIA(event)" class="flex space-x-2 pt-1">
+                        <input type="text" id="input-pregunta-ia" placeholder="Escribe tu consulta libre aquí..." class="flex-1 bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-indigo-500">
+                        <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-3 py-2 rounded-xl">Enviar</button>
+                    </form>
+                </div>
+            `;
+            panel.classList.remove('translate-x-full');
+        }
+
+        function preguntarIA(e) {
+            e.preventDefault();
+            let inp = document.getElementById('input-pregunta-ia');
+            let q = inp.value.trim();
+            if (!q) return;
+
+            let box = document.getElementById('chat-ia-respuestas');
+            box.innerHTML += `<div class="text-right text-indigo-300 font-sans my-1">👤 ${q}</div>`;
+            inp.value = '';
+
+            let dataset = comunasData.filter(c => String(c.consulta || "7") === String(cicloActual));
+            let resp = "";
+
+            let qLower = q.toLowerCase();
+            if (qLower.includes("cuantos") || qLower.includes("cuántos")) {
+                resp = `Actualmente hay un total de ${dataset.length} proyectos registrados en la ${cicloActual}ma Consulta Popular.`;
+            } else if (qLower.includes("iribarren")) {
+                let count = dataset.filter(c => c.municipio === 'Iribarren').length;
+                resp = `El municipio Iribarren cuenta con ${count} proyectos en este ciclo.`;
+            } else {
+                resp = `Analizando datos de Lara: Se registran ${dataset.length} proyectos. ${dataset.filter(d=>d.nudo_critico && !d.nudo_critico.includes("Sin reporte")).length} tienen nudos críticos activos requeridos para atención interinstitucional.`;
+            }
+
+            setTimeout(() => {
+                box.innerHTML += `<div class="bg-slate-950 p-2 rounded border border-slate-800 text-slate-200">${resp}</div>`;
+                box.scrollTop = box.scrollHeight;
+            }, 300);
+        }
+
+        function generarReporteGenericoIA(tipo) {
+            let box = document.getElementById('chat-ia-respuestas');
+            let dataset = comunasData.filter(c => String(c.consulta || "7") === String(cicloActual));
+
+            if (tipo === 'nudos') {
+                let criticos = dataset.filter(d => d.nudo_critico && !d.nudo_critico.includes("Sin reporte"));
+                let txt = `========================================\n  REPORTE TÁCTICO: NUDOS CRÍTICOS\n========================================\nAfectados: ${criticos.length}\n\n` +
+                criticos.map((c, i) => `${i+1}. ${c.nombre} (${c.municipio})\n   ⚠️ ${c.nudo_critico}`).join('\n\n');
+                box.innerHTML += `<pre class="bg-slate-950 p-2 rounded border border-slate-800 whitespace-pre-wrap">${txt}</pre>`;
+            } else if (tipo === 'ejecucion') {
+                let ejec = dataset.filter(d => d.estatus_proyecto === 'En Ejecución');
+                let txt = `========================================\n  PROYECTOS EN EJECUCIÓN\n========================================\nTotal: ${ejec.length}\n\n` +
+                ejec.map((c, i) => `${i+1}. ${c.nombre}\n   Físico: ${c.ejecucion_fisica}% | Financiero: ${c.ejecucion_financiera}%`).join('\n\n');
+                box.innerHTML += `<pre class="bg-slate-950 p-2 rounded border border-slate-800 whitespace-pre-wrap">${txt}</pre>`;
+            }
             box.scrollTop = box.scrollHeight;
-        }, 300);
-    }
-
-    function generarReporteGenericoIA(tipo) {
-        let box = document.getElementById('chat-ia-respuestas');
-        let dataset = comunasData.filter(c => String(c.consulta || "7") === String(cicloActual));
-
-        if (tipo === 'nudos') {
-            let criticos = dataset.filter(d => d.nudo_critico && !d.nudo_critico.includes("Sin reporte"));
-            let txt = `========================================\n  REPORTE TÁCTICO: NUDOS CRÍTICOS\n========================================\nAfectados: ${criticos.length}\n\n` +
-            criticos.map((c, i) => `${i+1}. ${c.nombre} (${c.municipio})\n   ⚠️ ${c.nudo_critico}`).join('\n\n');
-            box.innerHTML += `<pre class="bg-slate-950 p-2 rounded border border-slate-800 whitespace-pre-wrap">${txt}</pre>`;
-        } else if (tipo === 'ejecucion') {
-            let ejec = dataset.filter(d => d.estatus_proyecto === 'En Ejecución');
-            let txt = `========================================\n  PROYECTOS EN EJECUCIÓN\n========================================\nTotal: ${ejec.length}\n\n` +
-            ejec.map((c, i) => `${i+1}. ${c.nombre}\n   Físico: ${c.ejecucion_fisica}% | Financiero: ${c.ejecucion_financiera}%`).join('\n\n');
-            box.innerHTML += `<pre class="bg-slate-950 p-2 rounded border border-slate-800 whitespace-pre-wrap">${txt}</pre>`;
         }
-        box.scrollTop = box.scrollHeight;
-    }
 
-    function abrirGestionUsuarios() {
-        document.getElementById('titulo-panel-lateral').innerText = "Gestión de Usuarios del Sistema";
-        const panel = document.getElementById('ficha-comuna');
+        function abrirGestionUsuarios() {
+            document.getElementById('titulo-panel-lateral').innerText = "Gestión de Usuarios del Sistema";
+            const panel = document.getElementById('ficha-comuna');
 
-        let listaHtml = usuariosSistema.map((u, i) => `
-            <div class="bg-slate-900 p-3 rounded-xl border border-slate-800 space-y-2 text-xs">
-                <div class="flex justify-between items-center">
-                    <span class="font-bold text-indigo-300">👤 ${u.usuario}</span>
-                    <span class="text-[10px] bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded font-bold">${u.rol}</span>
-                </div>
-                <div class="grid grid-cols-2 gap-2">
-                    <div>
-                        <label class="text-[9px] text-slate-400">Contraseña</label>
-                        <input type="text" id="edit-pass-${i}" value="${u.pass}" class="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1 text-white text-[11px]">
+            let listaHtml = usuariosSistema.map((u, i) => `
+                <div class="bg-slate-900 p-3 rounded-xl border border-slate-800 space-y-2 text-xs">
+                    <div class="flex justify-between items-center">
+                        <span class="font-bold text-indigo-300">👤 ${u.usuario}</span>
+                        <span class="text-[10px] bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded font-bold">${u.rol}</span>
                     </div>
-                    <div>
-                        <label class="text-[9px] text-slate-400">Rol</label>
-                        <select id="edit-rol-${i}" class="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1 text-white text-[11px]">
-                            <option value="Creadora" ${u.rol === 'Creadora' ? 'selected' : ''}>Creadora</option>
-                            <option value="Administrador" ${u.rol === 'Administrador' ? 'selected' : ''}>Administrador</option>
-                            <option value="Analista" ${u.rol === 'Analista' ? 'selected' : ''}>Analista</option>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="text-[9px] text-slate-400">Contraseña</label>
+                            <input type="text" id="edit-pass-${i}" value="${u.pass}" class="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1 text-white text-[11px]">
+                        </div>
+                        <div>
+                            <label class="text-[9px] text-slate-400">Rol</label>
+                            <select id="edit-rol-${i}" class="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1 text-white text-[11px]">
+                                <option value="Creadora" ${u.rol === 'Creadora' ? 'selected' : ''}>Creadora</option>
+                                <option value="Administrador" ${u.rol === 'Administrador' ? 'selected' : ''}>Administrador</option>
+                                <option value="Analista" ${u.rol === 'Analista' ? 'selected' : ''}>Analista</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="flex justify-end space-x-2 pt-1">
+                        <button onclick="guardarEdicionUsuario(${i})" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-2.5 py-1 rounded text-[10px]">💾 Guardar</button>
+                        ${u.usuario !== usuarioActual.usuario ? `<button onclick="eliminarUsuario(${i})" class="bg-red-600/20 hover:bg-red-600/40 text-red-300 border border-red-500/30 px-2 py-1 rounded text-[10px]">🗑️ Eliminar</button>` : ''}
+                    </div>
+                </div>
+            `).join('');
+
+            document.getElementById('contenido-ficha').innerHTML = `
+                <div class="space-y-4 text-xs">
+                    <form onsubmit="crearUser(event)" class="bg-slate-900 p-3.5 rounded-xl border border-slate-800 space-y-2">
+                        <div class="font-bold text-white flex justify-between items-center">
+                            <span>➕ Registrar Nuevo Usuario</span>
+                        </div>
+                        <input type="text" id="nu-u" placeholder="Nombre de usuario" required class="w-full bg-slate-950 border border-slate-800 p-2 rounded text-white text-xs outline-none">
+                        <input type="password" id="nu-p" placeholder="Contraseña" required class="w-full bg-slate-950 border border-slate-800 p-2 rounded text-white text-xs outline-none">
+                        <select id="nu-r" class="w-full bg-slate-950 border border-slate-800 p-2 rounded text-white text-xs outline-none">
+                            <option value="Analista">Rol: Analista (Asigna Sectores / Lectura)</option>
+                            <option value="Administrador">Rol: Administrador (Acceso Total)</option>
+                            <option value="Creadora">Rol: Creadora (Ing. Scarly Macareo)</option>
                         </select>
+                        <button type="submit" class="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-2 rounded-lg transition-all">Registrar Usuario</button>
+                    </form>
+
+                    <div class="space-y-2 border-t border-slate-800 pt-3">
+                        <div class="font-bold text-slate-300">Usuarios Registrados:</div>
+                        ${listaHtml}
                     </div>
                 </div>
-                <div class="flex justify-end space-x-2 pt-1">
-                    <button onclick="guardarEdicionUsuario(${i})" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-2.5 py-1 rounded text-[10px]">💾 Guardar</button>
-                    ${u.usuario !== usuarioActual.usuario ? `<button onclick="eliminarUsuario(${i})" class="bg-red-600/20 hover:bg-red-600/40 text-red-300 border border-red-500/30 px-2 py-1 rounded text-[10px]">🗑️ Eliminar</button>` : ''}
-                </div>
-            </div>
-        `).join('');
+            `;
+            panel.classList.remove('translate-x-full');
+        }
 
-        document.getElementById('contenido-ficha').innerHTML = `
-            <div class="space-y-4 text-xs">
-                <form onsubmit="crearUser(event)" class="bg-slate-900 p-3.5 rounded-xl border border-slate-800 space-y-2">
-                    <div class="font-bold text-white flex justify-between items-center">
-                        <span>➕ Registrar Nuevo Usuario</span>
+        function guardarEdicionUsuario(idx) {
+            let p = document.getElementById(`edit-pass-${idx}`).value.trim();
+            let r = document.getElementById(`edit-rol-${idx}`).value;
+            if (p) {
+                usuariosSistema[idx].pass = p;
+                usuariosSistema[idx].rol = r;
+                alert(`Usuario ${usuariosSistema[idx].usuario} actualizado con éxito.`);
+                abrirGestionUsuarios();
+            }
+        }
+
+        function eliminarUsuario(idx) {
+            if (confirm(`¿Seguro que deseas eliminar al usuario ${usuariosSistema[idx].usuario}?`)) {
+                usuariosSistema.splice(idx, 1);
+                abrirGestionUsuarios();
+            }
+        }
+
+        function crearUser(e) {
+            e.preventDefault();
+            let u = document.getElementById('nu-u').value.trim();
+            let p = document.getElementById('nu-p').value.trim();
+            let r = document.getElementById('nu-r').value;
+            if (u && p) {
+                usuariosSistema.push({ id: Date.now(), usuario: u, pass: p, rol: r });
+                alert(`Usuario ${u} registrado correctamente.`);
+                abrirGestionUsuarios();
+            }
+        }
+
+        function abrirMatrizPreferencias() {
+            document.getElementById('titulo-panel-lateral').innerText = "Sector de Inversión";
+            const panel = document.getElementById('ficha-comuna');
+
+            let sectores = {};
+            let dataset = comunasData.filter(c => String(c.consulta || "7") === String(cicloActual));
+            dataset.forEach(c => { let s = c.sector || "General"; sectores[s] = (sectores[s] || 0) + 1; });
+
+            let listaSectoresHtml = Object.keys(sectores).map(sec => `
+                <div onclick="desplegarProyectosPorSector('${sec}')" class="bg-slate-900 hover:bg-slate-800 p-3 rounded-xl border border-slate-800 flex justify-between items-center cursor-pointer">
+                    <span class="text-white font-medium text-xs">📁 ${sec}</span>
+                    <span class="text-xs bg-indigo-500/20 text-indigo-300 px-2 py-0.5 rounded font-bold">${sectores[sec]} Proyectos</span>
+                </div>
+            `).join('');
+
+            document.getElementById('contenido-ficha').innerHTML = `
+                <div class="space-y-4 text-xs">
+                    <div class="bg-slate-900 p-3 rounded-xl border border-slate-800">
+                        <canvas id="chartSectores" width="300" height="180"></canvas>
                     </div>
-                    <input type="text" id="nu-u" placeholder="Nombre de usuario" required class="w-full bg-slate-950 border border-slate-800 p-2 rounded text-white text-xs outline-none">
-                    <input type="password" id="nu-p" placeholder="Contraseña" required class="w-full bg-slate-950 border border-slate-800 p-2 rounded text-white text-xs outline-none">
-                    <select id="nu-r" class="w-full bg-slate-950 border border-slate-800 p-2 rounded text-white text-xs outline-none">
-                        <option value="Analista">Rol: Analista (Asigna Sectores / Lectura)</option>
-                        <option value="Administrador">Rol: Administrador (Acceso Total)</option>
-                        <option value="Creadora">Rol: Creadora (Ing. Scarly Macareo)</option>
-                    </select>
-                    <button type="submit" class="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-2 rounded-lg transition-all">Registrar Usuario</button>
-                </form>
-
-                <div class="space-y-2 border-t border-slate-800 pt-3">
-                    <div class="font-bold text-slate-300">Usuarios Registrados:</div>
-                    ${listaHtml}
+                    <div class="space-y-2">
+                        <div class="font-bold text-slate-300">Haz clic en un sector para desplegar sus proyectos:</div>
+                        ${listaSectoresHtml}
+                    </div>
+                    <div id="lista-proyectos-sector" class="space-y-2 pt-2 border-t border-slate-800 hidden"></div>
                 </div>
-            </div>
-        `;
-        panel.classList.remove('translate-x-full');
-    }
+            `;
+            panel.classList.remove('translate-x-full');
 
-    function guardarEdicionUsuario(idx) {
-        let p = document.getElementById(`edit-pass-${idx}`).value.trim();
-        let r = document.getElementById(`edit-rol-${idx}`).value;
-        if (p) {
-            usuariosSistema[idx].pass = p;
-            usuariosSistema[idx].rol = r;
-            alert(`Usuario ${usuariosSistema[idx].usuario} actualizado con éxito.`);
-            abrirGestionUsuarios();
-        }
-    }
-
-    function eliminarUsuario(idx) {
-        if (confirm(`¿Seguro que deseas eliminar al usuario ${usuariosSistema[idx].usuario}?`)) {
-            usuariosSistema.splice(idx, 1);
-            abrirGestionUsuarios();
-        }
-    }
-
-    function crearUser(e) {
-        e.preventDefault();
-        let u = document.getElementById('nu-u').value.trim();
-        let p = document.getElementById('nu-p').value.trim();
-        let r = document.getElementById('nu-r').value;
-        if (u && p) {
-            usuariosSistema.push({ id: Date.now(), usuario: u, pass: p, rol: r });
-            alert(`Usuario ${u} registrado correctamente.`);
-            abrirGestionUsuarios();
-        }
-    }
-
-    function abrirMatrizPreferencias() {
-        document.getElementById('titulo-panel-lateral').innerText = "Sector de Inversión";
-        const panel = document.getElementById('ficha-comuna');
-
-        let sectores = {};
-        let dataset = comunasData.filter(c => String(c.consulta || "7") === String(cicloActual));
-        dataset.forEach(c => { let s = c.sector || "General"; sectores[s] = (sectores[s] || 0) + 1; });
-
-        let listaSectoresHtml = Object.keys(sectores).map(sec => `
-            <div onclick="desplegarProyectosPorSector('${sec}')" class="bg-slate-900 hover:bg-slate-800 p-3 rounded-xl border border-slate-800 flex justify-between items-center cursor-pointer">
-                <span class="text-white font-medium text-xs">📁 ${sec}</span>
-                <span class="text-xs bg-indigo-500/20 text-indigo-300 px-2 py-0.5 rounded font-bold">${sectores[sec]} Proyectos</span>
-            </div>
-        `).join('');
-
-        document.getElementById('contenido-ficha').innerHTML = `
-            <div class="space-y-4 text-xs">
-                <div class="bg-slate-900 p-3 rounded-xl border border-slate-800">
-                    <canvas id="chartSectores" width="300" height="180"></canvas>
-                </div>
-                <div class="space-y-2">
-                    <div class="font-bold text-slate-300">Haz clic en un sector para desplegar sus proyectos:</div>
-                    ${listaSectoresHtml}
-                </div>
-                <div id="lista-proyectos-sector" class="space-y-2 pt-2 border-t border-slate-800 hidden"></div>
-            </div>
-        `;
-        panel.classList.remove('translate-x-full');
-
-        setTimeout(() => {
-            const ctx = document.getElementById('chartSectores').getContext('2d');
-            chartSectoresInstance = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: Object.keys(sectores),
-                    datasets: [{ data: Object.values(sectores), backgroundColor: ['#6366f1', '#a855f7', '#10b981', '#f59e0b', '#38bdf8', '#ec4899', '#f97316'] }]
-                },
-                options: {
-                    responsive: true,
-                    onClick: (e, elements) => {
-                        if (elements.length > 0) {
-                            let idx = elements[0].index;
-                            let sectorNom = Object.keys(sectores)[idx];
-                            desplegarProyectosPorSector(sectorNom);
+            setTimeout(() => {
+                const ctx = document.getElementById('chartSectores').getContext('2d');
+                chartSectoresInstance = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: Object.keys(sectores),
+                        datasets: [{ data: Object.values(sectores), backgroundColor: ['#6366f1', '#a855f7', '#10b981', '#f59e0b', '#38bdf8', '#ec4899', '#f97316'] }]
+                    },
+                    options: {
+                        responsive: true,
+                        onClick: (e, elements) => {
+                            if (elements.length > 0) {
+                                let idx = elements[0].index;
+                                let sectorNom = Object.keys(sectores)[idx];
+                                desplegarProyectosPorSector(sectorNom);
+                            }
                         }
                     }
-                }
-            });
-        }, 200);
-    }
+                });
+            }, 200);
+        }
 
-    function desplegarProyectosPorSector(sector) {
-        let cont = document.getElementById('lista-proyectos-sector');
-        let proys = comunasData.filter(c => String(c.consulta || "7") === String(cicloActual) && (c.sector || "General") === sector);
+        function desplegarProyectosPorSector(sector) {
+            let cont = document.getElementById('lista-proyectos-sector');
+            let proys = comunasData.filter(c => String(c.consulta || "7") === String(cicloActual) && (c.sector || "General") === sector);
 
-        let html = proys.map(p => {
-            let pid = obtenerId(p);
-            return `
-            <div onclick="seleccionarResultadoBusqueda('${pid}')" class="bg-slate-900 p-2.5 rounded-lg border border-slate-800 cursor-pointer hover:border-indigo-500 space-y-1">
-                <div class="font-bold text-white text-xs">${p.emblematico ? '⭐ ' : ''}${p.nombre}</div>
-                <div class="text-[11px] text-slate-300">${p.proyectos}</div>
-                <div class="flex justify-between text-[10px] text-slate-400">
-                    <span>Físico: <b class="text-emerald-400">${p.ejecucion_fisica}%</b></span>
-                    <span>Financiero: <b class="text-blue-400">${p.ejecucion_financiera}%</b></span>
+            let html = proys.map(p => {
+                let pid = obtenerId(p);
+                return `
+                <div onclick="seleccionarResultadoBusqueda('${pid}')" class="bg-slate-900 p-2.5 rounded-lg border border-slate-800 cursor-pointer hover:border-indigo-500 space-y-1">
+                    <div class="font-bold text-white text-xs">${p.emblematico ? '⭐ ' : ''}${p.nombre}</div>
+                    <div class="text-[11px] text-slate-300">${p.proyectos}</div>
+                    <div class="flex justify-between text-[10px] text-slate-400">
+                        <span>Físico: <b class="text-emerald-400">${p.ejecucion_fisica}%</b></span>
+                        <span>Financiero: <b class="text-blue-400">${p.ejecucion_financiera}%</b></span>
+                    </div>
                 </div>
-            </div>
-        `;}).join('');
+            `;}).join('');
 
-        cont.innerHTML = `<div class="font-bold text-indigo-300 text-xs mb-2">Proyectos en ${sector}:</div>${html}`;
-        cont.classList.remove('hidden');
-    }
+            cont.innerHTML = `<div class="font-bold text-indigo-300 text-xs mb-2">Proyectos en ${sector}:</div>${html}`;
+            cont.classList.remove('hidden');
+        }
 
-    function filtrarProyectosEmblematicos() {
-        let dataset = comunasData.filter(c => String(c.consulta || "7") === String(cicloActual) && c.emblematico === true);
-        renderizarMapa(dataset);
+        function filtrarProyectosEmblematicos() {
+            let dataset = comunasData.filter(c => String(c.consulta || "7") === String(cicloActual) && c.emblematico === true);
+            renderizarMapa(dataset);
 
-        document.getElementById('titulo-panel-lateral').innerText = "⭐ Proyectos Emblemáticos";
-        const panel = document.getElementById('ficha-comuna');
+            document.getElementById('titulo-panel-lateral').innerText = "⭐ Proyectos Emblemáticos";
+            const panel = document.getElementById('ficha-comuna');
 
-        let htmlProyectos = dataset.map(p => {
-            let pid = obtenerId(p);
-            return `
-            <div onclick="seleccionarResultadoBusqueda('${pid}')" class="bg-slate-900 p-3 rounded-xl border border-amber-500/30 space-y-1 cursor-pointer hover:border-amber-400 transition-all">
-                <div class="flex justify-between items-center">
-                    <span class="font-bold text-amber-300 text-xs">⭐ ${p.nombre}</span>
-                    <span class="text-[10px] text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded">${p.municipio}</span>
+            let htmlProyectos = dataset.map(p => {
+                let pid = obtenerId(p);
+                return `
+                <div onclick="seleccionarResultadoBusqueda('${pid}')" class="bg-slate-900 p-3 rounded-xl border border-amber-500/30 space-y-1 cursor-pointer hover:border-amber-400 transition-all">
+                    <div class="flex justify-between items-center">
+                        <span class="font-bold text-amber-300 text-xs">⭐ ${p.nombre}</span>
+                        <span class="text-[10px] text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded">${p.municipio}</span>
+                    </div>
+                    <p class="text-xs text-slate-300 font-medium">${p.proyectos || 'Sin nombre de proyecto'}</p>
+                    <div class="flex justify-between text-[10px] text-slate-400 pt-1">
+                        <span>Sector: <b class="text-indigo-300">${p.sector || 'General'}</b></span>
+                        <span>Físico: <b class="text-emerald-400">${p.ejecucion_fisica}%</b></span>
+                    </div>
                 </div>
-                <p class="text-xs text-slate-300 font-medium">${p.proyectos || 'Sin nombre de proyecto'}</p>
-                <div class="flex justify-between text-[10px] text-slate-400 pt-1">
-                    <span>Sector: <b class="text-indigo-300">${p.sector || 'General'}</b></span>
-                    <span>Físico: <b class="text-emerald-400">${p.ejecucion_fisica}%</b></span>
-                </div>
-            </div>
-        `;}).join('');
+            `;}).join('');
 
-        document.getElementById('contenido-ficha').innerHTML = `
-            <div class="space-y-3">
-                <div class="bg-amber-950/40 border border-amber-500/40 p-3 rounded-xl flex justify-between items-center">
-                    <span class="text-xs font-bold text-amber-300">Total Emblemáticos:</span>
-                    <span class="text-sm font-bold text-slate-950 bg-amber-400 px-2.5 py-0.5 rounded-lg">${dataset.length}</span>
+            document.getElementById('contenido-ficha').innerHTML = `
+                <div class="space-y-3">
+                    <div class="bg-amber-950/40 border border-amber-500/40 p-3 rounded-xl flex justify-between items-center">
+                        <span class="text-xs font-bold text-amber-300">Total Emblemáticos:</span>
+                        <span class="text-sm font-bold text-slate-950 bg-amber-400 px-2.5 py-0.5 rounded-lg">${dataset.length}</span>
+                    </div>
+                    <div class="space-y-2 max-h-[calc(100vh-180px)] overflow-y-auto">
+                        ${htmlProyectos || '<p class="text-xs text-slate-500 italic p-2">No hay proyectos marcados como emblemáticos en este ciclo.</p>'}
+                    </div>
                 </div>
-                <div class="space-y-2 max-h-[calc(100vh-180px)] overflow-y-auto">
-                    ${htmlProyectos || '<p class="text-xs text-slate-500 italic p-2">No hay proyectos marcados como emblemáticos en este ciclo.</p>'}
-                </div>
-            </div>
-        `;
-        panel.classList.remove('translate-x-full');
-    }
+            `;
+            panel.classList.remove('translate-x-full');
+        }
 
-    function filtrarPorEstatusProyecto(est) {
-        let dataset = comunasData.filter(c => String(c.consulta || "7") === String(cicloActual) && c.estatus_proyecto === est);
-        renderizarMapa(dataset);
+        function filtrarPorEstatusProyecto(est) {
+            let dataset = comunasData.filter(c => String(c.consulta || "7") === String(cicloActual) && c.estatus_proyecto === est);
+            renderizarMapa(dataset);
 
-        document.getElementById('titulo-panel-lateral').innerText = `Proyectos: ${est}`;
-        const panel = document.getElementById('ficha-comuna');
+            document.getElementById('titulo-panel-lateral').innerText = `Proyectos: ${est}`;
+            const panel = document.getElementById('ficha-comuna');
 
-        let htmlProyectos = dataset.map(p => {
-            let pid = obtenerId(p);
-            return `
-            <div onclick="seleccionarResultadoBusqueda('${pid}')" class="bg-slate-900 p-3 rounded-xl border border-slate-800 space-y-1 cursor-pointer hover:border-indigo-500 transition-all">
-                <div class="flex justify-between items-center">
-                    <span class="font-bold text-white text-xs">${p.emblematico ? '⭐ ' : ''}${p.nombre}</span>
-                    <span class="text-[10px] text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded">${p.municipio}</span>
+            let htmlProyectos = dataset.map(p => {
+                let pid = obtenerId(p);
+                return `
+                <div onclick="seleccionarResultadoBusqueda('${pid}')" class="bg-slate-900 p-3 rounded-xl border border-slate-800 space-y-1 cursor-pointer hover:border-indigo-500 transition-all">
+                    <div class="flex justify-between items-center">
+                        <span class="font-bold text-white text-xs">${p.emblematico ? '⭐ ' : ''}${p.nombre}</span>
+                        <span class="text-[10px] text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded">${p.municipio}</span>
+                    </div>
+                    <p class="text-xs text-slate-300 font-medium">${p.proyectos || 'Sin nombre de proyecto'}</p>
+                    <div class="flex justify-between text-[10px] text-slate-400 pt-1">
+                        <span>Físico: <b class="text-emerald-400">${p.ejecucion_fisica}%</b></span>
+                        <span>Financiero: <b class="text-blue-400">${p.ejecucion_financiera}%</b></span>
+                    </div>
                 </div>
-                <p class="text-xs text-slate-300 font-medium">${p.proyectos || 'Sin nombre de proyecto'}</p>
-                <div class="flex justify-between text-[10px] text-slate-400 pt-1">
-                    <span>Físico: <b class="text-emerald-400">${p.ejecucion_fisica}%</b></span>
-                    <span>Financiero: <b class="text-blue-400">${p.ejecucion_financiera}%</b></span>
-                </div>
-            </div>
-        `;}).join('');
+            `;}).join('');
 
-        document.getElementById('contenido-ficha').innerHTML = `
-            <div class="space-y-3">
-                <div class="bg-indigo-950/40 border border-indigo-500/30 p-3 rounded-xl flex justify-between items-center">
-                    <span class="text-xs font-bold text-indigo-300">Total en ${est}:</span>
-                    <span class="text-sm font-bold text-white bg-indigo-600 px-2.5 py-0.5 rounded-lg">${dataset.length}</span>
+            document.getElementById('contenido-ficha').innerHTML = `
+                <div class="space-y-3">
+                    <div class="bg-indigo-950/40 border border-indigo-500/30 p-3 rounded-xl flex justify-between items-center">
+                        <span class="text-xs font-bold text-indigo-300">Total en ${est}:</span>
+                        <span class="text-sm font-bold text-white bg-indigo-600 px-2.5 py-0.5 rounded-lg">${dataset.length}</span>
+                    </div>
+                    <div class="space-y-2 max-h-[calc(100vh-180px)] overflow-y-auto">
+                        ${htmlProyectos || '<p class="text-xs text-slate-500 italic p-2">No existen proyectos registrados en este estatus.</p>'}
+                    </div>
                 </div>
-                <div class="space-y-2 max-h-[calc(100vh-180px)] overflow-y-auto">
-                    ${htmlProyectos || '<p class="text-xs text-slate-500 italic p-2">No existen proyectos registrados en este estatus.</p>'}
-                </div>
-            </div>
-        `;
-        panel.classList.remove('translate-x-full');
-    }
+            `;
+            panel.classList.remove('translate-x-full');
+        }
 
-    function restablecerMapaCompleto() { filtrarPorCiclo(); if (map) map.setView([10.0678, -69.3474], 9); }
-    function cerrarFicha() { document.getElementById('ficha-comuna').classList.add('translate-x-full'); }
-    function zoomMunicipio(m) { if (m && municipiosCoordenadas[m]) map.setView([municipiosCoordenadas[m].lat, municipiosCoordenadas[m].lng], municipiosCoordenadas[m].zoom); }
-</script>
+        function restablecerMapaCompleto() { filtrarPorCiclo(); if (map) map.setView([10.0678, -69.3474], 9); }
+        function cerrarFicha() { document.getElementById('ficha-comuna').classList.add('translate-x-full'); }
+        function zoomMunicipio(m) { if (m && municipiosCoordenadas[m]) map.setView([municipiosCoordenadas[m].lat, municipiosCoordenadas[m].lng], municipiosCoordenadas[m].zoom); }
+    </script>
+</body>
+</html>
